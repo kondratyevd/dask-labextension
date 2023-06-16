@@ -5,7 +5,7 @@ import {
   CommandToolbarButton
 } from '@jupyterlab/apputils';
 
-import { IChangedArgs, URLExt } from '@jupyterlab/coreutils';
+import { IChangedArgs } from '@jupyterlab/coreutils';
 
 import * as nbformat from '@jupyterlab/nbformat';
 
