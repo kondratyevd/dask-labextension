@@ -74,8 +74,8 @@ export class DaskClusterManager extends Widget {
       if (!cluster) {
         return;
       }
-      const proxyUrl = URLExt.join(this._serverSettings.baseUrl, 'proxy');
-      const proxyPrefix = new URL(proxyUrl).pathname;
+      // const proxyUrl = URLExt.join(this._serverSettings.baseUrl, 'proxy');
+      // const proxyPrefix = new URL(proxyUrl).pathname;
       options.setDashboardUrl(`/proxy/8787/status`);
       // if (cluster.dashboard_link.indexOf(proxyPrefix) !== -1) {
       //   // If the dashboard link is already proxied using
