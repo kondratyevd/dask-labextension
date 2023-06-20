@@ -720,9 +720,9 @@ function ClusterListingItem(props: IClusterListingItemProps) {
       </div>
       <div
         className="dask-ClusterListingItem-link"
-        title={cluster.contact_address}
+        title={JSON.stringify(cluster.contact_address)}
       >
-        Scheduler Address (public): {cluster.contact_address}
+        Scheduler Address (public): {JSON.stringify(cluster.contact_address)}
       </div>
       <div className="dask-ClusterListingItem-stats">
         Executable: {cluster.python}
