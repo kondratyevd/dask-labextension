@@ -3,8 +3,9 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import importlib
+import os
 import yaml
+import importlib
 from inspect import isawaitable
 from typing import Any, Dict, List, Union
 from uuid import uuid4
@@ -24,7 +25,11 @@ Cluster = Any
 
 
 async def make_cluster(configuration: dict) -> Cluster:
-    dask.config.update(dask.config, yaml.safe_load("~/.config/dask/labextension.yaml"), priority="new")
+    home_dir = os.environ.get("HOME", "./")
+    with open(f"{home_dir}/.config/dask/labextension.yaml", "r") as file:
+        new_config = yaml.safe_load(file)
+    dask.config.update(dask.config, new_config, priority="new")
+
     module = importlib.import_module(dask.config.get("labextension.factory.module"))
     Cluster = getattr(module, dask.config.get("labextension.factory.class"))
 
