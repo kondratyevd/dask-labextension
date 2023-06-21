@@ -4,6 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import importlib
+import yaml
 from inspect import isawaitable
 from typing import Any, Dict, List, Union
 from uuid import uuid4
@@ -23,6 +24,7 @@ Cluster = Any
 
 
 async def make_cluster(configuration: dict) -> Cluster:
+    dask.config.update(yaml.safe_load("~/.config/dask/labextension.yaml"))
     module = importlib.import_module(dask.config.get("labextension.factory.module"))
     Cluster = getattr(module, dask.config.get("labextension.factory.class"))
 
