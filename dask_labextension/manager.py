@@ -24,7 +24,7 @@ Cluster = Any
 
 
 async def make_cluster(configuration: dict) -> Cluster:
-    dask.config.update(yaml.safe_load("~/.config/dask/labextension.yaml"))
+    dask.config.update(dask.config, yaml.safe_load("~/.config/dask/labextension.yaml"), priority="new")
     module = importlib.import_module(dask.config.get("labextension.factory.module"))
     Cluster = getattr(module, dask.config.get("labextension.factory.class"))
 
