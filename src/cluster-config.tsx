@@ -1,6 +1,5 @@
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 
-import { IClusterModel } from './clusters';
 import * as React from 'react';
 
 /**
