@@ -24,23 +24,24 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
   }
 
   // FIXME - this should overwrite dask config
-  onConfig1Changed(event: React.ChangeEvent): void {
-    console.log("Test opt 1")
+  onClusterTypeChanged(event: React.ChangeEvent): void {
+    console.log("Test opt 2")
+    const value = (event.target as HTMLInputElement).checked;
+    this.setState({
+    //   model: this.state.model,
+      is_slurm: value
+    });
+  }
+
+  // FIXME - this should overwrite dask config
+  onPythonExecChanged(event: React.ChangeEvent): void {
+    const python = event.target.value as string
+    console.log(`${python}`)
     // this.setState({
     //   model: {
     //     ...this.state.model,
     //     workers: parseInt((event.target as HTMLInputElement).value, 10)
     //   }
-    // });
-  }
-
-  // FIXME - this should overwrite dask config
-  onConfig2Changed(event: React.ChangeEvent): void {
-    console.log("Test opt 2")
-    // const value = (event.target as HTMLInputElement).checked;
-    // this.setState({
-    //   model: this.state.model,
-    //   is_slurm: value
     // });
   }
 
@@ -52,7 +53,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
     const disabledClass = 'dask-mod-disabled';
     return (
       <div>
-        <span className="dask-ScalingHeader">Local Cluster</span>
+        <span className="dask-ScalingHeader">Use LocalCluster</span>
         <div className="dask-ScalingSection">
           <div className="dask-ScalingSection-item">
             <span
@@ -65,14 +66,14 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
           </div>
         </div>
         <div className="dask-ScalingHeader">
-          SLURM Cluster
+          Use SLURM cluster
           <input
             className="dask-ScalingCheckbox"
             type="checkbox"
             checked={is_slurm}
-            // onChange={evt => {
-            //   this.onConfig1Changed(evt);
-            // }}
+            onChange={evt => {
+              this.onClusterTypeChanged(evt);
+            }}
           />
         </div>
         <div className="dask-ScalingSection">
@@ -84,15 +85,17 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
             >
               Select python executable
             </span>
-            <input
+            <select
               className="dask-ScalingInput"
               disabled={!is_slurm}
-              type="button"
               value="Test"
-              // onChange={evt => {
-              //   this.onConfig2Changed(evt);
-              // }}
-            />
+              onChange={evt => {
+                this.onPythonExecChanged(evt);
+              }}>
+                <option value="">Select kernel</option>
+                <option value="/depot/cms/kernels/python3/bin/python3">Python3 kernel</option>
+                <option value="/depot/cms/kernels/python3-ml/bin/python3">Python3 [ML] kernel</option>
+            </select>
           </div>
         </div>
       </div>
