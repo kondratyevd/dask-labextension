@@ -31,6 +31,8 @@ import { Widget, PanelLayout } from '@lumino/widgets';
 
 import { showScalingDialog } from './scaling';
 
+import { showClusterConfigDialog } from './cluster-config';
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { CommandRegistry } from '@lumino/commands';
@@ -443,6 +445,7 @@ export class DaskClusterManager extends Widget {
    */
   private async _launchCluster(): Promise<IClusterModel> {
     this._isReady = false;
+    await showClusterConfigDialog();
     this._registry.notifyCommandChanged(this._launchClusterId);
     const response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}dask/clusters`,
