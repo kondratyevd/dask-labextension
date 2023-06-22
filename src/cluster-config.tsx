@@ -34,7 +34,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
   }
 
   // FIXME - this should overwrite dask config
-  onPythonExecChanged(event: React.ChangeEvent): void {
+  onPythonExecChanged(event: React.ChangeEvent<{ value: unknown }>): void {
     const python = event.target.value as string
     console.log(`${python}`)
     // this.setState({
@@ -88,7 +88,6 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
             <select
               className="dask-ScalingInput"
               disabled={!is_slurm}
-              value="Test"
               onChange={evt => {
                 this.onPythonExecChanged(evt);
               }}>
