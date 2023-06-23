@@ -333,6 +333,7 @@ button.dask-ClusterListingItem-scale {
   margin-left: 24px;
 }
 
+/* Custom radio button styles */
 .dask-ClusterConfigSection-item input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
@@ -342,18 +343,42 @@ button.dask-ClusterListingItem-scale {
   border-radius: 50%;
   border: 2px solid #ccc;
   outline: none;
-  transition: border-color 0.2s;
-  margin: 12px 0 12px 0;
+  transition: all 0.2s;
+  position: relative;
 }
 
-.dask-ClusterConfigSection-item input[type="radio"]:checked {
-  border-color: #007bff; /* Change the color to reflect the active state */
-}
-
-/* Optional: Hide the default radio button indicator */
-.dask-ClusterConfigSection-item input[type="radio"]::before {
+.dask-ClusterConfigSection-item input[type="radio"]:before {
   content: "";
-  display: none;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 10px;
+  height: 10px;
+  background-color: #007bff;
+  border-radius: 50%;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.dask-ClusterConfigSection-item input[type="radio"]:checked:before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.dask-ClusterConfigSection-item label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  margin-right: 10px;
+}
+
+.dask-ClusterConfigSection-item label:hover {
+  color: #007bff;
+}
+
+.dask-ClusterConfigSection-item input[type="radio"]:focus-visible {
+  outline: 2px solid #007bff;
 }
 
 /* .dask-ClusterConfigSection-item {

@@ -81,31 +81,28 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
               />
               Use SLURM Cluster
             </label>
-          </div>
-        </div>
-      </div>
-      <div>
-        <span className="dask-ClusterConfigHeader">Select Python Executable</span>
-        <div className="dask-ClusterConfigSection">
-          <div className="dask-ClusterConfigSection-item">
-            <span
-              className={`dask-ClusterConfigSection-label ${
-                !is_slurm ? disabledClass : ''
-              }`}
-            >
-              Select Python Executable
-            </span>
-            <select
-              className="dask-ClusterConfigInput"
-              disabled={!is_slurm}
-              onChange={evt => {
-                this.onPythonExecChanged(evt);
-              }}
-            >
-              <option value="">Select kernel</option>
-              <option value="/depot/cms/kernels/python3/bin/python3">Python3 kernel</option>
-              <option value="/depot/cms/kernels/python3-ml/bin/python3">Python3 [ML] kernel</option>
-            </select>
+            {is_slurm && (
+              <div className="dask-ClusterConfigSection-item">
+                <span
+                  className={`dask-ClusterConfigSection-label ${
+                    !isSlurm ? disabledClass : ''
+                  }`}
+                >
+                  Select Python Executable
+                </span>
+                <select
+                  className="dask-ClusterConfigInput"
+                  disabled={!is_slurm}
+                  onChange={evt => {
+                    this.onPythonExecChanged(evt);
+                  }}
+                >
+                  <option value="">Select kernel</option>
+                  <option value="/depot/cms/kernels/python3/bin/python3">Python3 kernel</option>
+                  <option value="/depot/cms/kernels/python3-ml/bin/python3">Python3 [ML] kernel</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
       </div>
