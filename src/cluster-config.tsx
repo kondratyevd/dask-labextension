@@ -89,7 +89,9 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
                 >
                 </span>
                 <select
-                  className={"dask-ClusterConfigSelect"}
+                  className={`dask-ClusterConfigSelect ${
+                    !is_slurm ? disabledClass : ''
+                  }`}
                   disabled={!is_slurm}
                   onChange={evt => {
                     this.onPythonExecChanged(evt);
