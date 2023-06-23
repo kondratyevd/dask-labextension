@@ -2,6 +2,8 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 import * as React from 'react';
 
+import { spawn } from 'child_process';
+
 /**
  * A namespace for ClusterConfig statics.
  */
@@ -26,6 +28,25 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
   // FIXME - this should overwrite dask config
   onClusterTypeChanged(event: React.ChangeEvent<{ value: unknown }>): void {
     const value = event.target.value === "true";
+    let child;
+    if (value) {
+      child = spawn('bash', ['dask-cluster-config', '-m', 'slurm']);
+    } else {
+      child = spawn('bash', ['dask-cluster-config', '-m', 'local']);
+    }
+
+    child.stdout.on('data', data => {
+      console.log(`stdout: ${data}`);
+    });
+
+    child.stderr.on('data', data => {
+      console.error(`stderr: ${data}`);
+    });
+
+    child.on('close', code => {
+      console.log(`child process exited with code ${code}`);
+    });
+
     this.setState({
       is_slurm: value
     });
