@@ -24,8 +24,8 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
   }
 
   // FIXME - this should overwrite dask config
-  onClusterTypeChanged(event: React.ChangeEvent): void {
-    const value = event.target.value as boolean;
+  onClusterTypeChanged(event: React.ChangeEvent<{ value: unknown }>): void {
+    const value = event.target.value === "true";
     this.setState({
       is_slurm: value
     });
@@ -59,7 +59,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
               <input
                 type="radio"
                 name="clusterType"
-                value={false}
+                value="false"
                 checked={!is_slurm}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
@@ -73,7 +73,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
               <input
                 type="radio"
                 name="clusterType"
-                value={true}
+                value="true"
                 checked={is_slurm}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
