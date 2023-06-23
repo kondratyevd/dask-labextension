@@ -329,9 +329,9 @@ button.dask-ClusterListingItem-scale {
   font-size: var(--jp-ui-font-size2);
 }
 
-.dask-ClusterConfigSection {
+/* .dask-ClusterConfigSection {
   margin-left: 12px;
-}
+} */
 
 /* Custom radio button styles */
 .dask-ClusterConfigSection-item input[type="radio"] {
@@ -384,11 +384,15 @@ button.dask-ClusterListingItem-scale {
 
 .dask-ClusterConfigSelect {
   position: relative;
-  /* appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none; */
-  width: 100%;
+  appearance: auto;
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+  width: calc(100% - 24px);
+  height: 24px;
+  line-height: 14px;
   padding: 8px;
+  padding: 0 25px 0 10px;
+  text-align: left;
   /* border: 2px solid #ccc; */
   /* border-radius: 4px;
   background-color: #fff;
