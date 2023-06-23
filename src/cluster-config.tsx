@@ -139,7 +139,7 @@ export function showClusterConfigDialog(): Promise<object | null> {
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
     if (result.button.accept) {
-      const is_slurm = result.value.is_slurm;
+      const is_slurm = result.value.is_slurm as boolean;
 
       if (is_slurm) {
         return {
