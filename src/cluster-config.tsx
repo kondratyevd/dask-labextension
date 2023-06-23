@@ -2,8 +2,6 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 import * as React from 'react';
 
-import { spawn } from 'child_process';
-
 /**
  * A namespace for ClusterConfig statics.
  */
@@ -28,25 +26,6 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
   // FIXME - this should overwrite dask config
   onClusterTypeChanged(event: React.ChangeEvent<{ value: unknown }>): void {
     const value = event.target.value === "true";
-    let child;
-    if (value) {
-      child = spawn('bash', ['dask-cluster-config', '-m', 'slurm']);
-    } else {
-      child = spawn('bash', ['dask-cluster-config', '-m', 'local']);
-    }
-
-    child.stdout.on('data', data => {
-      console.log(`stdout: ${data}`);
-    });
-
-    child.stderr.on('data', data => {
-      console.error(`stderr: ${data}`);
-    });
-
-    child.on('close', code => {
-      console.log(`child process exited with code ${code}`);
-    });
-
     this.setState({
       is_slurm: value
     });
@@ -139,7 +118,19 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
  * @returns a promse that resolves with the user-selected cluster configuration.
  *   If they pressed the cancel button, it resolves with the original model.
  */
-export function showClusterConfigDialog(): Promise<void> {
+// export function showClusterConfigDialog(): Promise<void> {
+//   return showDialog({
+//     title: `Configure Dask cluster`,
+//     body: (
+//       <ClusterConfig/>
+//     ),
+//     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
+//   }).then(result => {
+//     return;
+//   });
+// }
+
+export function showClusterConfigDialog(): Promise<object | null> {
   return showDialog({
     title: `Configure Dask cluster`,
     body: (
@@ -147,6 +138,40 @@ export function showClusterConfigDialog(): Promise<void> {
     ),
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
-    return;
+    if (result.button.accept) {
+      const is_slurm = result.value.is_slurm;
+
+      if (is_slurm) {
+        return {
+          factory: {
+            class: "PurdueSLURMCluster",
+            module: "purdue_slurm",
+            args: [],
+            kwargs: {
+              account: "cms",
+              cores: 1,
+              memory: "2G",
+              job_extra_directives: [
+                "--qos=normal",
+                "--reservation=DASKTEST",
+                "-o /tmp/dask_job.%j.%N.out",
+                "-e /tmp/dask_job.%j.%N.error"
+              ]
+            }
+          }
+        };
+      } else {
+        return {
+          factory: {
+            class: "LocalCluster",
+            module: "dask.distributed",
+            args: [],
+            kwargs: {}
+          }
+        };
+      }
+    } else {
+      return null;
+    }
   });
 }

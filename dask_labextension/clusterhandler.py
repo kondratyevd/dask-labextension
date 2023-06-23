@@ -55,13 +55,14 @@ class DaskClusterHandler(APIHandler):
         Create a new cluster with a given id. If no id is given, a random
         one is selected.
         """
+        cluster_config = json.loads(self.request.body)
         if manager.get_cluster(cluster_id):
             raise web.HTTPError(
                 403, f"A Dask cluster with ID {cluster_id} already exists!"
             )
 
         try:
-            cluster_model = await manager.start_cluster(cluster_id)
+            cluster_model = await manager.start_cluster(cluster_id, custom_config=cluster_config)
             self.set_status(200)
             self.finish(json.dumps(cluster_model))
         except Exception as e:

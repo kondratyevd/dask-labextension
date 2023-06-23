@@ -445,11 +445,14 @@ export class DaskClusterManager extends Widget {
    */
   private async _launchCluster(): Promise<IClusterModel> {
     this._isReady = false;
-    await showClusterConfigDialog();
+    const cluster_config = await showClusterConfigDialog();
     this._registry.notifyCommandChanged(this._launchClusterId);
     const response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}dask/clusters`,
-      { method: 'PUT' },
+      { 
+        method: 'PUT',
+        body: JSON.stringify(cluster_config)
+      },
       this._serverSettings
     );
     if (response.status !== 200) {

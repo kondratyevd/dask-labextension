@@ -24,11 +24,13 @@ ClusterModel = Dict[str, Any]
 Cluster = Any
 
 
-async def make_cluster(configuration: dict) -> Cluster:
-    home_dir = os.environ.get("HOME", "./")
-    with open(f"{home_dir}/.config/dask/labextension.yaml", "r") as file:
-        new_config = yaml.safe_load(file)
-    dask.config.global_config["labextension"] = new_config["labextension"]
+async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
+    # home_dir = os.environ.get("HOME", "./")
+    # with open(f"{home_dir}/.config/dask/labextension.yaml", "r") as file:
+    #     new_config = yaml.safe_load(file)
+    # dask.config.global_config["labextension"] = new_config["labextension"]
+    if custom_config:
+        dask.config.global_config["labextension"] = custom_config
 
     module = importlib.import_module(dask.config.get("labextension.factory.module"))
     Cluster = getattr(module, dask.config.get("labextension.factory.class"))
@@ -78,7 +80,7 @@ class DaskClusterManager:
         IOLoop.current().add_callback(start_clusters)
 
     async def start_cluster(
-        self, cluster_id: str = "", configuration: dict = {}
+        self, cluster_id: str = "", configuration: dict = {}, custom_config: dict = {}
     ) -> ClusterModel:
         """
         Start a new Dask cluster.
@@ -95,7 +97,7 @@ class DaskClusterManager:
         if not cluster_id:
             cluster_id = str(uuid4())
 
-        cluster, adaptive = await make_cluster(configuration)
+        cluster, adaptive = await make_cluster(configuration, custom_config=custom_config)
         self._n_clusters += 1
 
         # Check for a name in the config
