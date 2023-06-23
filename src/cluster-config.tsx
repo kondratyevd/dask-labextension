@@ -25,10 +25,8 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
 
   // FIXME - this should overwrite dask config
   onClusterTypeChanged(event: React.ChangeEvent): void {
-    console.log("Test opt 2")
-    const value = (event.target as HTMLInputElement).checked;
+    const value = event.target.value as boolean;
     this.setState({
-    //   model: this.state.model,
       is_slurm: value
     });
   }
@@ -52,30 +50,42 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
     const is_slurm = this.state.is_slurm;
     const disabledClass = 'dask-mod-disabled';
     return (
+    <div>
       <div>
-        <span className="dask-ScalingHeader">Use LocalCluster</span>
+        <span className="dask-ScalingHeader">Cluster Type</span>
         <div className="dask-ScalingSection">
           <div className="dask-ScalingSection-item">
-            <span
-              className={`dask-ScalingSection-label ${
-                is_slurm ? disabledClass : ''
-              }`}
-            >
-              Use local cluster
-            </span>
+            <label>
+              <input
+                type="radio"
+                name="clusterType"
+                value={false}
+                checked={!is_slurm}
+                onChange={evt => {
+                  this.onClusterTypeChanged(evt);
+                }}
+              />
+              Use Local Cluster
+            </label>
+          </div>
+          <div className="dask-ScalingSection-item">
+            <label>
+              <input
+                type="radio"
+                name="clusterType"
+                value={true}
+                checked={is_slurm}
+                onChange={evt => {
+                  this.onClusterTypeChanged(evt);
+                }}
+              />
+              Use SLURM Cluster
+            </label>
           </div>
         </div>
-        <div className="dask-ScalingHeader">
-          Use SLURM cluster
-          <input
-            className="dask-ScalingCheckbox"
-            type="checkbox"
-            checked={is_slurm}
-            onChange={evt => {
-              this.onClusterTypeChanged(evt);
-            }}
-          />
-        </div>
+      </div>
+      <div>
+        <span className="dask-ScalingHeader">Select Python Executable</span>
         <div className="dask-ScalingSection">
           <div className="dask-ScalingSection-item">
             <span
@@ -83,21 +93,23 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
                 !is_slurm ? disabledClass : ''
               }`}
             >
-              Select python executable
+              Select Python Executable
             </span>
             <select
               className="dask-ScalingInput"
               disabled={!is_slurm}
               onChange={evt => {
                 this.onPythonExecChanged(evt);
-              }}>
-                <option value="">Select kernel</option>
-                <option value="/depot/cms/kernels/python3/bin/python3">Python3 kernel</option>
-                <option value="/depot/cms/kernels/python3-ml/bin/python3">Python3 [ML] kernel</option>
+              }}
+            >
+              <option value="">Select kernel</option>
+              <option value="/depot/cms/kernels/python3/bin/python3">Python3 kernel</option>
+              <option value="/depot/cms/kernels/python3-ml/bin/python3">Python3 [ML] kernel</option>
             </select>
           </div>
         </div>
       </div>
+    </div>
     );
   }
 }
@@ -114,7 +126,7 @@ export function showClusterConfigDialog(): Promise<void> {
     body: (
       <ClusterConfig/>
     ),
-    buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'CONFIG' })]
+    buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
     return;
   });
