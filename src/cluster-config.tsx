@@ -18,11 +18,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   
   constructor(props: ClusterConfig.IProps) {
     super(props);
-    const is_slurm = false; // FIXME - load this from dask config
+    const is_slurm = props.is_slurm;
     this.state = { is_slurm };
   }
 
-  // FIXME - this should overwrite dask config
   onClusterTypeChanged(event: React.ChangeEvent<{ value: unknown }>): void {
     const value = event.target.value === "true";
     this.setState({
@@ -30,7 +29,6 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     });
   }
 
-  // FIXME - this should overwrite dask config
   onPythonExecChanged(event: React.ChangeEvent<{ value: unknown }>): void {
     const python = event.target.value as string
     console.log(`${python}`)
@@ -138,8 +136,7 @@ export function showClusterConfigDialog(): Promise<object | null> {
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
     if (result.button.accept) {
-      const is_slurm = result.value.is_slurm as boolean;
-
+      const is_slurm = (result.value as ClusterConfig.IState).is_slurm as boolean;
       if (is_slurm) {
         return {
           factory: {
