@@ -133,12 +133,12 @@ export function showClusterConfigDialog(): Promise<object | null> {
   return showDialog({
     title: `Configure Dask cluster`,
     body: (
-      <ClusterConfig is_slurm={is_slurm}/>
+      <ClusterConfig/>
     ),
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
     if (result.button.accept) {
-      const is_slurm = result.value.is_slurm;
+      const is_slurm = result.value.is_slurm as boolean;
 
       if (is_slurm) {
         return {
