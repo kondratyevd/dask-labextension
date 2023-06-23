@@ -383,11 +383,11 @@ button.dask-ClusterListingItem-scale {
   outline: 2px solid #007bff;
 }
 
-/* .dask-ClusterConfigSelect {
+.dask-ClusterConfigSelect {
   position: relative;
-  appearance: auto;
+  /* appearance: auto;
   -webkit-appearance: auto;
-  -moz-appearance: auto;
+  -moz-appearance: auto; */
   width: calc(80% - 24px);
   height: 24px;
   line-height: 14px;
@@ -407,7 +407,7 @@ button.dask-ClusterListingItem-scale {
 .dask-ClusterConfigSelect:focus:not(:disabled) {
   border-color: #007bff;
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
-} */
+}
 
 .dask-ClusterConfigHeader input[type='checkbox'] {
   position: relative;

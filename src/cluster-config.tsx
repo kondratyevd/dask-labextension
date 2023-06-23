@@ -81,6 +81,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
               />
               Use SLURM cluster
             </label>
+            {is_slurm && (
               <div className="dask-ClusterConfigSection-item">
                 <span
                   className={`dask-ClusterConfigSection-label ${
@@ -102,7 +103,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
                   <option value="/depot/cms/kernels/python3-ml/bin/python3">Python3 [ML] kernel</option>
                 </select>
               </div>
-
+            )}
           </div>
         </div>
       </div>
