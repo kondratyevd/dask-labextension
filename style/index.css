@@ -345,7 +345,7 @@ button.dask-ClusterListingItem-scale {
   outline: none;
   transition: all 0.2s;
   position: relative;
-  margin: 12px 0px 8px 0px;
+  margin: 8px;
   font-size: var(--jp-ui-font-size3);
 }
 
@@ -372,7 +372,7 @@ button.dask-ClusterListingItem-scale {
   align-items: center;
   cursor: pointer;
   user-select: none;
-  margin-left: 10px;
+  margin-left: 18px;
 }
 
 .dask-ClusterConfigSection-item label:hover {
@@ -383,7 +383,7 @@ button.dask-ClusterListingItem-scale {
   outline: 2px solid #007bff;
 }
 
-.dask-ClusterConfigSelect {
+/* .dask-ClusterConfigSelect {
   position: relative;
   appearance: auto;
   -webkit-appearance: auto;
@@ -402,13 +402,12 @@ button.dask-ClusterListingItem-scale {
   background-color: #f2f2f2;
   color: var(--jp-ui-font-color3);
   cursor: not-allowed;
-  /* font-size: var(--jp-ui-font-size4); */
 }
 
 .dask-ClusterConfigSelect:focus:not(:disabled) {
   border-color: #007bff;
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
-}
+} */
 
 .dask-ClusterConfigHeader input[type='checkbox'] {
   position: relative;
