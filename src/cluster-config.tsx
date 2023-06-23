@@ -2,22 +2,21 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 import * as React from 'react';
 
-/**
- * A namespace for ClusterConfig statics.
- */
+
 namespace ClusterConfig {
   export interface IState {
     is_slurm: boolean;
   }
+
+  export interface IProps {
+    is_slurm: boolean;
+  }
 }
 
-/**
- * A component for an HTML form that allows the user
- * to select cluster parameters.
- */
-export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
+
+export class ClusterConfig extends React.Component<ClusterConfig.IProps, ClusterConfig.IState> {
   
-  constructor(props: {}) {
+  constructor(props: ClusterScaling.IProps) {
     super(props);
     const is_slurm = false; // FIXME - load this from dask config
     this.state = { is_slurm };
@@ -139,7 +138,7 @@ export function showClusterConfigDialog(): Promise<object | null> {
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
     if (result.button.accept) {
-      const is_slurm = result.value.is_slurm as boolean;
+      const is_slurm = result.value.is_slurm;
 
       if (is_slurm) {
         return {
