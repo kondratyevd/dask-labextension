@@ -16,7 +16,7 @@ namespace ClusterConfig {
 
 export class ClusterConfig extends React.Component<ClusterConfig.IProps, ClusterConfig.IState> {
   
-  constructor(props: ClusterScaling.IProps) {
+  constructor(props: ClusterConfig.IProps) {
     super(props);
     const is_slurm = false; // FIXME - load this from dask config
     this.state = { is_slurm };
@@ -133,7 +133,7 @@ export function showClusterConfigDialog(): Promise<object | null> {
   return showDialog({
     title: `Configure Dask cluster`,
     body: (
-      <ClusterConfig/>
+      <ClusterConfig is_slurm={is_slurm}/>
     ),
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
