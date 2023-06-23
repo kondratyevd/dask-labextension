@@ -85,7 +85,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
               <div className="dask-ClusterConfigSection-item">
                 <span
                   className={`dask-ClusterConfigSection-label ${
-                    !isSlurm ? disabledClass : ''
+                    !is_slurm ? disabledClass : ''
                   }`}
                 >
                   Select Python Executable
