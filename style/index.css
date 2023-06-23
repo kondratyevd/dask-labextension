@@ -345,7 +345,7 @@ button.dask-ClusterListingItem-scale {
   outline: none;
   transition: all 0.2s;
   position: relative;
-  margin: 8px 0 8px 0;
+  margin: 8px;
 }
 
 .dask-ClusterConfigSection-item input[type="radio"]:before {
@@ -384,10 +384,6 @@ button.dask-ClusterListingItem-scale {
 
 .dask-ClusterConfigSelect {
   position: relative;
-  font-size: var(--jp-ui-font-size3);
-}
-
-.dask-ClusterConfigSelect select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -399,15 +395,16 @@ button.dask-ClusterListingItem-scale {
   color: #000;
   outline: none;
   transition: all 0.2s;
+  font-size: var(--jp-ui-font-size3);
 }
 
-.dask-ClusterConfigSelect select:disabled {
+.dask-ClusterConfigSelect:disabled {
   background-color: #f2f2f2;
-  color: var(--jp-ui-font-color3); /* Specify the desired disabled font color */
+  color: var(--jp-ui-font-color3);
   cursor: not-allowed;
 }
 
-.dask-ClusterConfigSelect select:focus {
+.dask-ClusterConfigSelect:focus {
   border-color: #007bff;
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
 }
