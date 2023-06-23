@@ -52,9 +52,9 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
     return (
     <div>
       <div>
-        <span className="dask-ScalingHeader">Cluster Type</span>
-        <div className="dask-ScalingSection">
-          <div className="dask-ScalingSection-item">
+        <span className="dask-ClusterConfigHeader">Cluster Type</span>
+        <div className="dask-ClusterConfigSection">
+          <div className="dask-ClusterConfigSection-item">
             <label>
               <input
                 type="radio"
@@ -68,7 +68,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
               Use Local Cluster
             </label>
           </div>
-          <div className="dask-ScalingSection-item">
+          <div className="dask-ClusterConfigSection-item">
             <label>
               <input
                 type="radio"
@@ -85,18 +85,18 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
         </div>
       </div>
       <div>
-        <span className="dask-ScalingHeader">Select Python Executable</span>
-        <div className="dask-ScalingSection">
-          <div className="dask-ScalingSection-item">
+        <span className="dask-ClusterConfigHeader">Select Python Executable</span>
+        <div className="dask-ClusterConfigSection">
+          <div className="dask-ClusterConfigSection-item">
             <span
-              className={`dask-ScalingSection-label ${
+              className={`dask-ClusterConfigSection-label ${
                 !is_slurm ? disabledClass : ''
               }`}
             >
               Select Python Executable
             </span>
             <select
-              className="dask-ScalingInput"
+              className="dask-ClusterConfigInput"
               disabled={!is_slurm}
               onChange={evt => {
                 this.onPythonExecChanged(evt);

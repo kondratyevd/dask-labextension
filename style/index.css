@@ -322,6 +322,67 @@ button.dask-ClusterListingItem-scale {
 }
 
 /**
+ * Rules for the cluster config dialog.
+ */
+
+ .dask-ClusterConfigHeader {
+  font-size: var(--jp-ui-font-size2);
+}
+
+.dask-ClusterConfigSection {
+  margin-left: 24px;
+}
+
+.dask-ClusterConfigSection-item input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  outline: none;
+  transition: border-color 0.2s;
+  margin: 12px 0 12px 0;
+}
+
+.dask-ClusterConfigSection-item input[type="radio"]:checked {
+  border-color: #007bff; /* Change the color to reflect the active state */
+}
+
+/* Optional: Hide the default radio button indicator */
+.dask-ClusterConfigSection-item input[type="radio"]::before {
+  content: "";
+  display: none;
+}
+
+/* .dask-ClusterConfigSection-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 12px 0 12px 0;
+} */
+
+.dask-ClusterConfigHeader input[type='checkbox'] {
+  position: relative;
+  top: 4px;
+  left: 4px;
+  margin: 0 0 0 8px;
+}
+
+.dask-ClusterConfigSection input[type='number'] {
+  width: 72px;
+}
+
+.dask-ClusterConfigSection-label.dask-mod-disabled {
+  color: var(--jp-ui-font-color3);
+}
+
+.dask-ClusterConfigSection input[type='number']:disabled {
+  color: var(--jp-ui-font-color3);
+}
+
+/**
  * Rules for the logos.
  */
 
