@@ -52,7 +52,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
     return (
     <div>
       <div>
-        <span className="dask-ClusterConfigHeader">Cluster Type</span>
+        <span className="dask-ClusterConfigHeader"></span>
         <div className="dask-ClusterConfigSection">
           <div className="dask-ClusterConfigSection-item">
             <label>
@@ -81,14 +81,13 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
               />
               Use SLURM Cluster
             </label>
-            {is_slurm && (
               <div className="dask-ClusterConfigSection-item">
                 <span
                   className={`dask-ClusterConfigSection-label ${
                     !is_slurm ? disabledClass : ''
                   }`}
                 >
-                  Select Python Executable
+                  Select Python Executable 
                 </span>
                 <select
                   className="dask-ClusterConfigInput"
@@ -102,7 +101,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
                   <option value="/depot/cms/kernels/python3-ml/bin/python3">Python3 [ML] kernel</option>
                 </select>
               </div>
-            )}
+
           </div>
         </div>
       </div>
@@ -119,7 +118,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
  */
 export function showClusterConfigDialog(): Promise<void> {
   return showDialog({
-    title: `Configure cluster`,
+    title: `Configure Dask cluster`,
     body: (
       <ClusterConfig/>
     ),

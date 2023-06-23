@@ -345,6 +345,7 @@ button.dask-ClusterListingItem-scale {
   outline: none;
   transition: all 0.2s;
   position: relative;
+  margin: 12px 0 12px 0;
 }
 
 .dask-ClusterConfigSection-item input[type="radio"]:before {
