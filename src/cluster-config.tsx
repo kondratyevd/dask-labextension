@@ -55,32 +55,28 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
         <span className="dask-ClusterConfigHeader"></span>
         <div className="dask-ClusterConfigSection">
           <div className="dask-ClusterConfigSection-item">
-            <label>
-              <input
-                type="radio"
-                name="clusterType"
-                value="false"
-                checked={!is_slurm}
-                onChange={evt => {
-                  this.onClusterTypeChanged(evt);
-                }}
-              />
-              Use Local Cluster
-            </label>
+            <input
+              type="radio"
+              name="clusterType"
+              value="false"
+              checked={!is_slurm}
+              onChange={evt => {
+                this.onClusterTypeChanged(evt);
+              }}
+            />
+            <label> Use Local Cluster </label>
           </div>
           <div className="dask-ClusterConfigSection-item">
-            <label>
-              <input
-                type="radio"
-                name="clusterType"
-                value="true"
-                checked={is_slurm}
-                onChange={evt => {
-                  this.onClusterTypeChanged(evt);
-                }}
-              />
-              Use SLURM Cluster
-            </label>
+            <input
+              type="radio"
+              name="clusterType"
+              value="true"
+              checked={is_slurm}
+              onChange={evt => {
+                this.onClusterTypeChanged(evt);
+              }}
+            />
+            <label> Use SLURM Cluster </label>
               <div className="dask-ClusterConfigSection-item">
                 <span
                   className={`dask-ClusterConfigSection-label ${
@@ -90,7 +86,7 @@ export class ClusterConfig extends React.Component<{}, ClusterConfig.IState> {
                   Select Python Executable 
                 </span>
                 <select
-                  className="dask-ClusterConfigInput"
+                  className="dask-ClusterConfigSelect"
                   disabled={!is_slurm}
                   onChange={evt => {
                     this.onPythonExecChanged(evt);

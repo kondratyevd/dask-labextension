@@ -345,7 +345,7 @@ button.dask-ClusterListingItem-scale {
   outline: none;
   transition: all 0.2s;
   position: relative;
-  margin: 12px 0 12px 0;
+  margin: 8px 0 8px 0;
 }
 
 .dask-ClusterConfigSection-item input[type="radio"]:before {
@@ -371,7 +371,7 @@ button.dask-ClusterListingItem-scale {
   align-items: center;
   cursor: pointer;
   user-select: none;
-  margin-right: 10px;
+  margin-left: 10px;
 }
 
 .dask-ClusterConfigSection-item label:hover {
@@ -382,12 +382,35 @@ button.dask-ClusterListingItem-scale {
   outline: 2px solid #007bff;
 }
 
-/* .dask-ClusterConfigSection-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  margin: 12px 0 12px 0;
-} */
+.dask-ClusterConfigSelect {
+  position: relative;
+  font-size: var(--jp-ui-font-size3);
+}
+
+.dask-ClusterConfigSelect select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #000;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.dask-ClusterConfigSelect select:disabled {
+  background-color: #f2f2f2;
+  color: var(--jp-ui-font-color3); /* Specify the desired disabled font color */
+  cursor: not-allowed;
+}
+
+.dask-ClusterConfigSelect select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+}
 
 .dask-ClusterConfigHeader input[type='checkbox'] {
   position: relative;
