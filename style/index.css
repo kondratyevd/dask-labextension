@@ -359,7 +359,7 @@ button.dask-ClusterListingItem-scale {
   transform: translate(-50%, -50%) scale(0);
   width: 10px;
   height: 10px;
-  background-color: var(--jp-accept-color-normal);
+  background-color: #007bff;
   border-radius: 50%;
   transition: transform 0.2s, background-color 0.2s;
 }
@@ -377,11 +377,11 @@ button.dask-ClusterListingItem-scale {
 }
 
 .dask-ClusterConfigSection-item label:hover {
-  color: var(--jp-accept-color-hover);
+  color: #007bff;
 }
 
 .dask-ClusterConfigSection-item input[type="radio"]:focus-visible {
-  outline: 2px solid var(--jp-accept-color-active);
+  outline: 2px solid #007bff;
 }
 
 .dask-ClusterConfigSelect {
@@ -407,7 +407,7 @@ button.dask-ClusterListingItem-scale {
 }
 
 .dask-ClusterConfigSelect:focus:not(:disabled) {
-  border-color: var(--jp-accept-color-hover);
+  border-color: #007bff;
   /* box-shadow: 0 0 4px rgba(0, 123, 255, 0.4); */
 }
 

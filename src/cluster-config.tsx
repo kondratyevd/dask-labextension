@@ -10,6 +10,7 @@ namespace ClusterConfig {
 
   export interface IProps {
     is_slurm: boolean;
+    stateEscapeHatch: (is_slurm: boolean) => void;
   }
 }
 
@@ -27,6 +28,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     this.setState({
       is_slurm: value
     });
+    this.props.stateEscapeHatch(value);
   }
 
   onPythonExecChanged(event: React.ChangeEvent<{ value: unknown }>): void {
@@ -128,10 +130,13 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
 // }
 
 export function showClusterConfigDialog(): Promise<object | null> {
+  const escapeHatch = (is_slurm: boolean) => {
+    is_slurm={false};
+  };
   return showDialog({
     title: `Configure Dask cluster`,
     body: (
-      <ClusterConfig is_slurm={false} />
+      <ClusterConfig is_slurm={false} stateEscapeHatch={escapeHatch}/>
     ),
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
