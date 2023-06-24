@@ -396,8 +396,8 @@ button.dask-ClusterListingItem-scale {
   padding: 0 25px 0 10px;
   text-align: left;
   transition: all 0.2s;
-  margin-left: 48px;
-  margin-top: 8px;
+  margin-left: 44px;
+  margin-top: 4px;
 }
 
 .dask-ClusterConfigSelect:disabled {

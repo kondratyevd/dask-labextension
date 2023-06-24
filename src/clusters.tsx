@@ -445,7 +445,7 @@ export class DaskClusterManager extends Widget {
    */
   private async _launchCluster(): Promise<IClusterModel> {
     this._isReady = false;
-    const cluster_config = await showClusterConfigDialog();
+    const cluster_config = await showClusterConfigDialog({});
     this._registry.notifyCommandChanged(this._launchClusterId);
     const response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}dask/clusters`,
