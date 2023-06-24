@@ -133,11 +133,14 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
  *   If they pressed the cancel button, it resolves with the original model.
  */
 
-export function showClusterConfigDialog(config: {}): Promise<{}> {
+export function showClusterConfigDialog(config: {}): Promise<{}|null> {
   let new_config = { ...config };
   const escapeHatch = (is_slurm: boolean, python: string) => {
     if (is_slurm) {
       new_config = {
+        default: {
+          workers: 2
+        },
         factory: {
           class: "PurdueSLURMCluster",
           module: "purdue_slurm",
@@ -158,6 +161,9 @@ export function showClusterConfigDialog(config: {}): Promise<{}> {
       };
     } else {
       new_config = {
+        default: {
+          workers: 2
+        },
         factory: {
           class: "LocalCluster",
           module: "dask.distributed",
@@ -175,10 +181,9 @@ export function showClusterConfigDialog(config: {}): Promise<{}> {
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
   }).then(result => {
     if (result.button.accept) {
-      console.log(result);
       return new_config;
     } else {
-      return config;
+      return null;
     }
   });
 }
