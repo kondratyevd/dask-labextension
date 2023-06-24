@@ -131,7 +131,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
 
 export function showClusterConfigDialog(): Promise<object | null> {
   const escapeHatch = (is_slurm: boolean) => {
-    is_slurm={false};
+    is_slurm=false;
   };
   return showDialog({
     title: `Configure Dask cluster`,
