@@ -154,11 +154,12 @@ export class ClusterScaling extends React.Component<
   render() {
     const model = this.state.model;
     const adapt = model.adapt!;
-    const adaptive = this.state.adaptive;
+    // const adaptive = this.state.adaptive;
+    const adaptive = true;
     const disabledClass = 'dask-mod-disabled';
     return (
       <div>
-        <span className="dask-ScalingHeader">Manual Scaling</span>
+        {/* <span className="dask-ScalingHeader">Manual Scaling</span>
         <div className="dask-ScalingSection">
           <div className="dask-ScalingSection-item">
             <span
@@ -190,7 +191,8 @@ export class ClusterScaling extends React.Component<
               this.onScalingChanged(evt);
             }}
           />
-        </div>
+        </div> */}
+        <span className="dask-ScalingHeader">Set range for number of workers</span>
         <div className="dask-ScalingSection">
           <div className="dask-ScalingSection-item">
             <span
