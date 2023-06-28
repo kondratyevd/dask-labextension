@@ -4,19 +4,31 @@ import * as React from 'react';
 
 // const DEFAULT_PYTHON: string = "/depot/cms/kernels/python3";
 
+interface KernelSpecs {
+  default: string;
+  kernelspecs:{
+    name: string;
+    spec: {
+      argv: string[];
+      display_name: string;
+    };
+  }[]
+}
+
 namespace ClusterConfig {
   export interface IState {
     is_slurm: boolean;
-    python: string;
+    python_exec_path: string;
     min_workers: number;
     max_workers: number;
   }
   export interface IProps {
     is_slurm: boolean;
-    python: string;
+    kernelspecs: KernelSpecs;
+    python_exec_path: string;
     min_workers: number;
     max_workers: number;
-    stateEscapeHatch: (is_slurm: boolean, python: string, min_workers: number, max_workers: number) => void;
+    stateEscapeHatch: (is_slurm: boolean, python_exec_path: string, min_workers: number, max_workers: number) => void;
   }
 }
 
@@ -26,10 +38,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   constructor(props: ClusterConfig.IProps) {
     super(props);
     const is_slurm = props.is_slurm;
-    const python = props.python;
+    const python_exec_path = props.python_exec_path;
     const min_workers = props.min_workers;
     const max_workers = props.max_workers;
-    this.state = { is_slurm, python, min_workers, max_workers};
+    this.state = { is_slurm, python_exec_path, min_workers, max_workers};
   }
 
   componentDidMount() {
@@ -37,16 +49,16 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   componentDidUpdate(): void {
-    this.props.stateEscapeHatch(this.state.is_slurm, this.state.python, this.state.min_workers, this.state.max_workers);
+    this.props.stateEscapeHatch(this.state.is_slurm, this.state.python_exec_path, this.state.min_workers, this.state.max_workers);
   }
 
   resetValues(): void {
     const is_slurm = false;
-    const python = "";
+    const python_exec_path = "";
     const min_workers = 1;
     const max_workers = 2;
-    this.setState({ is_slurm, python, min_workers, max_workers });
-    this.props.stateEscapeHatch(is_slurm, python, min_workers, max_workers);
+    this.setState({ is_slurm, python_exec_path, min_workers, max_workers });
+    this.props.stateEscapeHatch(is_slurm, python_exec_path, min_workers, max_workers);
   }
 
   onClusterTypeChanged(event: React.ChangeEvent<{ value: unknown }>): void {
@@ -56,11 +68,11 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     });
   }
 
-  onPythonExecChanged(event: React.ChangeEvent<{ value: unknown }>): void {
-    const python = event.target.value as string
+  onKernelChanged(event: React.ChangeEvent<{ value: unknown }>): void {
+    const python_exec_path = event.target.value as string
     if (!this.state.is_slurm) { return }
     this.setState({
-      python: python
+      python_exec_path: python_exec_path
     });
   }
 
@@ -91,6 +103,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const is_slurm = this.state.is_slurm;
     const min_workers = this.state.min_workers;
     const max_workers = this.state.max_workers;
+    const kernelspecs = this.props.kernelspecs;
     const disabledClass = 'dask-mod-disabled';
     return (
     <div>
@@ -108,7 +121,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
                   this.onClusterTypeChanged(evt);
                 }}
               />
-              Use local cluster
+              Local cluster
             </label>
           </div>
           <div className="dask-ClusterConfigSection-item">
@@ -122,7 +135,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
                   this.onClusterTypeChanged(evt);
                 }}
               />
-              Use SLURM cluster
+              SLURM cluster
             </label>
             {is_slurm && (
               <div className="dask-ClusterConfigSection-item">
@@ -138,11 +151,17 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
                   }`}
                   disabled={!is_slurm}
                   onChange={evt => {
-                    this.onPythonExecChanged(evt);
+                    this.onKernelChanged(evt);
                   }}
                 >
-                  <option value="/depot/cms/kernels/python3/bin/python3">Python3 kernel</option>
-                  <option value="/depot/cms/kernels/python3-ml/bin/python3">Python3 [ML] kernel</option>
+                  {Object.values(kernelspecs.kernelspecs).map(kernel => {
+                    return (
+                      <option
+                        value={kernel.spec.argv[0]}
+                        selected={kernel.name === kernelspecs.default}
+                      > {kernel.spec.display_name} </option>
+                    )
+                  })}
                 </select>
               </div>
             )}
@@ -198,9 +217,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
  *   If they pressed the cancel button, it resolves with the original model.
  */
 
-export function showClusterConfigDialog(config: {}): Promise<{}|null> {
-  let new_config = { ...config };
-  const escapeHatch = (is_slurm: boolean, python: string, min_workers: number, max_workers: number) => {
+export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|null> {
+  console.log(kernelspecs);
+  let new_config = {};
+  const escapeHatch = (is_slurm: boolean, python_exec_path: string, min_workers: number, max_workers: number) => {
     if (is_slurm) {
       new_config = {
         default: {
@@ -223,7 +243,7 @@ export function showClusterConfigDialog(config: {}): Promise<{}|null> {
               "-o /tmp/dask_job.%j.%N.out",
               "-e /tmp/dask_job.%j.%N.error"
             ],
-            python: python
+            python: python_exec_path
           }
         }
       };
@@ -249,9 +269,10 @@ export function showClusterConfigDialog(config: {}): Promise<{}|null> {
     body: (
       <ClusterConfig
         is_slurm={false}
-        python={""}
+        python_exec_path={""}
         min_workers={1}
         max_workers={2}
+        kernelspecs={kernelspecs}
         stateEscapeHatch={escapeHatch}
       />
     ),

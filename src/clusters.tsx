@@ -445,7 +445,14 @@ export class DaskClusterManager extends Widget {
    */
   private async _launchCluster(): Promise<IClusterModel> {
     this._isReady = false;
-    const cluster_config = await showClusterConfigDialog({});
+    const kernelspecs_response = await ServerConnection.makeRequest(
+      `${this._serverSettings.baseUrl}api/kernelspecs`,
+      { 
+        method: 'GET',
+      },
+      this._serverSettings
+    );
+    const cluster_config = await showClusterConfigDialog(await kernelspecs_response.json());
     if (cluster_config === null) { return };
     this._registry.notifyCommandChanged(this._launchClusterId);
     const response = await ServerConnection.makeRequest(
