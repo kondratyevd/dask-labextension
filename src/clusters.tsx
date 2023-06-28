@@ -37,6 +37,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { CommandRegistry } from '@lumino/commands';
 
+const DEFAULT_DASHBOARD_LINK = `/proxy/8787/status`;
+
 /**
  * A refresh interval (in ms) for polling the backend cluster manager.
  */
@@ -78,7 +80,7 @@ export class DaskClusterManager extends Widget {
       }
       // const proxyUrl = URLExt.join(this._serverSettings.baseUrl, 'proxy');
       // const proxyPrefix = new URL(proxyUrl).pathname;
-      options.setDashboardUrl(`/proxy/8787/status`);
+      options.setDashboardUrl(DEFAULT_DASHBOARD_LINK);
       // if (cluster.dashboard_link.indexOf(proxyPrefix) !== -1) {
       //   // If the dashboard link is already proxied using
       //   // jupyter_server_proxy, don't proxy again. This
@@ -715,6 +717,14 @@ function ClusterListingItem(props: IClusterListingItemProps) {
       </div>
     );
   }
+  let kernel_display_name: JSX.Element | null = null;
+  if (cluster.kernel_display_name!=="") {
+    kernel_display_name = (
+      <div className="dask-ClusterListingItem-stats">
+      Kernel: {cluster.kernel_display_name}
+    </div>
+    )
+  }
 
   return (
     <li
@@ -732,25 +742,12 @@ function ClusterListingItem(props: IClusterListingItemProps) {
       >
         Scheduler Address: {cluster.scheduler_address}
       </div>
-      {/* <div className="dask-ClusterListingItem-link">
-        Dashboard URL:{' '}
-        <a
-          target="_blank"
-          rel="noreferrer"
-          href={cluster.dashboard_link}
-          title={cluster.dashboard_link}
-        >
-          {cluster.dashboard_link}
-        </a>
-      </div> */}
+      {kernel_display_name}
       <div className="dask-ClusterListingItem-stats">
-        Number of Cores: {cluster.cores}
+        Number of Workers: {cluster.workers}
       </div>
       <div className="dask-ClusterListingItem-stats">
         Memory: {cluster.memory}
-      </div>
-      <div className="dask-ClusterListingItem-stats">
-        Number of Workers: {cluster.workers}
       </div>
       {minimum}
       {maximum}

@@ -2,33 +2,44 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 import * as React from 'react';
 
-// const DEFAULT_PYTHON: string = "/depot/cms/kernels/python3";
+const DEFAULT_CLUSTER_TYPE = "local";
+const DEFAULT_MIN_WORKERS = 1;
+const DEFAULT_MAX_WORKERS = 2;
 
 interface KernelSpecs {
   default: string;
-  kernelspecs:{
-    name: string;
-    spec: {
-      argv: string[];
-      display_name: string;
-    };
-  }[]
+  kernelspecs: {
+    [key: string]: {
+      name: string;
+      spec: {
+        argv: string[];
+        display_name: string;
+      };
+    }
+  }
 }
+
+interface Kernel {
+  name: string;
+  display_name: string;
+  python_exec_path: string;
+}
+
 
 namespace ClusterConfig {
   export interface IState {
-    is_slurm: boolean;
-    python_exec_path: string;
+    cluster_type: string;
+    kernel: Kernel;
     min_workers: number;
     max_workers: number;
   }
   export interface IProps {
-    is_slurm: boolean;
+    cluster_type: string;
     kernelspecs: KernelSpecs;
-    python_exec_path: string;
+    kernel: Kernel;
     min_workers: number;
     max_workers: number;
-    stateEscapeHatch: (is_slurm: boolean, python_exec_path: string, min_workers: number, max_workers: number) => void;
+    stateEscapeHatch: (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => void;
   }
 }
 
@@ -37,11 +48,11 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   
   constructor(props: ClusterConfig.IProps) {
     super(props);
-    const is_slurm = props.is_slurm;
-    const python_exec_path = props.python_exec_path;
+    const cluster_type = props.cluster_type;
+    const kernel = props.kernel;
     const min_workers = props.min_workers;
     const max_workers = props.max_workers;
-    this.state = { is_slurm, python_exec_path, min_workers, max_workers};
+    this.state = { cluster_type, kernel, min_workers, max_workers};
   }
 
   componentDidMount() {
@@ -49,30 +60,40 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   componentDidUpdate(): void {
-    this.props.stateEscapeHatch(this.state.is_slurm, this.state.python_exec_path, this.state.min_workers, this.state.max_workers);
+    this.props.stateEscapeHatch(this.state.cluster_type, this.state.kernel, this.state.min_workers, this.state.max_workers);
   }
 
   resetValues(): void {
-    const is_slurm = false;
-    const python_exec_path = "";
-    const min_workers = 1;
-    const max_workers = 2;
-    this.setState({ is_slurm, python_exec_path, min_workers, max_workers });
-    this.props.stateEscapeHatch(is_slurm, python_exec_path, min_workers, max_workers);
+    const cluster_type = DEFAULT_CLUSTER_TYPE;
+    const ks = this.props.kernelspecs;
+    const kernel = {
+      name: ks.default,
+      display_name: ks.kernelspecs[ks.default].spec.display_name,
+      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
+    };
+    const min_workers = DEFAULT_MIN_WORKERS;
+    const max_workers = DEFAULT_MAX_WORKERS;
+    this.setState({ cluster_type, kernel, min_workers, max_workers });
+    this.props.stateEscapeHatch(cluster_type, kernel, min_workers, max_workers);
   }
 
   onClusterTypeChanged(event: React.ChangeEvent<{ value: unknown }>): void {
-    const value = event.target.value === "true";
     this.setState({
-      is_slurm: value,
+      cluster_type: event.target.value as string,
     });
   }
 
   onKernelChanged(event: React.ChangeEvent<{ value: unknown }>): void {
-    const python_exec_path = event.target.value as string
-    if (!this.state.is_slurm) { return }
+    if (this.state.cluster_type == "local") { return }
+    const kernel_name = event.target.value as string;
+    const ks = this.props.kernelspecs;
+    const kernel = {
+      name: kernel_name,
+      display_name: ks.kernelspecs[kernel_name].spec.display_name,
+      python_exec_path: ks.kernelspecs[kernel_name].spec.argv[0]
+    };
     this.setState({
-      python_exec_path: python_exec_path
+      kernel: kernel
     });
   }
 
@@ -100,10 +121,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
    * Render the component..
    */
   render() {
-    const is_slurm = this.state.is_slurm;
+    const cluster_type = this.state.cluster_type;
     const min_workers = this.state.min_workers;
     const max_workers = this.state.max_workers;
-    const kernelspecs = this.props.kernelspecs;
+    const ks = this.props.kernelspecs;
     const disabledClass = 'dask-mod-disabled';
     return (
     <div>
@@ -115,8 +136,8 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               <input
                 type="radio"
                 name="clusterType"
-                value="false"
-                checked={!is_slurm}
+                value="local"
+                checked={cluster_type=="local"}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
                 }}
@@ -129,36 +150,36 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               <input
                 type="radio"
                 name="clusterType"
-                value="true"
-                checked={is_slurm}
+                value="slurm"
+                checked={cluster_type=="slurm"}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
                 }}
               />
               SLURM cluster
             </label>
-            {is_slurm && (
+            {(cluster_type=="slurm") && (
               <div className="dask-ClusterConfigSection-item">
                 <span
                   className={`dask-ClusterConfigSection-label ${
-                    !is_slurm ? disabledClass : ''
+                    cluster_type!=="slurm" ? disabledClass : ''
                   }`}
                 >
                 </span>
                 <select
                   className={`dask-ClusterConfigSelect ${
-                    !is_slurm ? disabledClass : ''
+                    cluster_type!=="slurm" ? disabledClass : ''
                   }`}
-                  disabled={!is_slurm}
+                  disabled={cluster_type!=="slurm"}
                   onChange={evt => {
                     this.onKernelChanged(evt);
                   }}
                 >
-                  {Object.values(kernelspecs.kernelspecs).map(kernel => {
+                  {Object.values(ks.kernelspecs).map(kernel => {
                     return (
                       <option
-                        value={kernel.spec.argv[0]}
-                        selected={kernel.name === kernelspecs.default}
+                        value={kernel.name}
+                        selected={kernel.name === ks.default}
                       > {kernel.spec.display_name} </option>
                     )
                   })}
@@ -218,10 +239,9 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
  */
 
 export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|null> {
-  console.log(kernelspecs);
   let new_config = {};
-  const escapeHatch = (is_slurm: boolean, python_exec_path: string, min_workers: number, max_workers: number) => {
-    if (is_slurm) {
+  const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => {
+    if (cluster_type=="slurm") {
       new_config = {
         default: {
           adapt: {
@@ -243,11 +263,13 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
               "-o /tmp/dask_job.%j.%N.out",
               "-e /tmp/dask_job.%j.%N.error"
             ],
-            python: python_exec_path
+            kernel_name: kernel.name,
+            kernel_display_name: kernel.display_name,
+            python: kernel.python_exec_path
           }
         }
       };
-    } else {
+    } else if (cluster_type=="local") {
       new_config = {
         default: {
           adapt: {
@@ -262,16 +284,22 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
           kwargs: {}
         }
       };
+    } else {
+      new_config = {}
     }
   };
   return showDialog({
     title: `Configure Dask cluster`,
     body: (
       <ClusterConfig
-        is_slurm={false}
-        python_exec_path={""}
-        min_workers={1}
-        max_workers={2}
+        cluster_type={DEFAULT_CLUSTER_TYPE}
+        kernel={{
+          name: kernelspecs.default,
+          display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name,
+          python_exec_path: kernelspecs.kernelspecs[kernelspecs.default].spec.argv[0]
+        }}
+        min_workers={DEFAULT_MIN_WORKERS}
+        max_workers={DEFAULT_MAX_WORKERS}
         kernelspecs={kernelspecs}
         stateEscapeHatch={escapeHatch}
       />

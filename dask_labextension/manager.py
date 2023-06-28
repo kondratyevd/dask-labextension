@@ -286,6 +286,12 @@ def make_cluster_model(
     except KeyError:  # dask.__version__ < 2.0
         cores = sum(d["ncores"] for d in info["workers"].values())
     assert isinstance(info, dict)
+    try:
+        kernel_name = cluster.kernel_name
+        kernel_display_name = cluster.kernel_display_name
+    except AttributeError:
+        kernel_name = ""
+        kernel_display_name = ""
     model = dict(
         id=cluster_id,
         name=cluster_name,
@@ -294,6 +300,8 @@ def make_cluster_model(
         workers=len(info["workers"]),
         memory=format_bytes(sum(d["memory_limit"] for d in info["workers"].values())),
         cores=cores,
+        kernel_name=kernel_name,
+        kernel_display_name=kernel_display_name
     )
     if adaptive:
         model["adapt"] = {"minimum": adaptive.minimum, "maximum": adaptive.maximum}
