@@ -14,6 +14,7 @@ interface KernelSpecs {
       spec: {
         argv: string[];
         display_name: string;
+        language: string;
       };
     }
   }
@@ -176,12 +177,9 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
                   }}
                 >
                   {Object.values(ks.kernelspecs).map(kernel => {
-                    return (
-                      <option
-                        value={kernel.name}
-                        selected={kernel.name === ks.default}
-                      > {kernel.spec.display_name} </option>
-                    )
+                    if (kernel.spec.language === "python") { 
+                      return (<option value={kernel.name} selected={kernel.name === ks.default}> {kernel.spec.display_name} </option>)
+                    }
                   })}
                 </select>
               </div>
