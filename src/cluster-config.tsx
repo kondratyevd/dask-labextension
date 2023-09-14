@@ -257,7 +257,6 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             memory: "2G",
             job_extra_directives: [
               "--qos=normal",
-              "--reservation=DASKTEST",
               "-o /tmp/dask_job.%j.%N.out",
               "-e /tmp/dask_job.%j.%N.error"
             ],
