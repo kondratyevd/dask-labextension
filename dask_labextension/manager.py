@@ -107,7 +107,6 @@ class DaskClusterManager:
 
         self._clusters[cluster_id] = cluster
         self._cluster_names[cluster_id] = cluster_name
-        raise KeyError([cluster_id, cluster_name, cluster, adaptive])
         return make_cluster_model(cluster_id, cluster_name, cluster, adaptive=adaptive)
 
     async def close_cluster(self, cluster_id: str) -> Union[ClusterModel, None]:
@@ -276,6 +275,8 @@ def make_cluster_model(
         info = cluster.scheduler_info
     except AttributeError:
         info = cluster.scheduler.identity()
+    raise KeyError(info)
+
     try:
         cores = sum(d["nthreads"] for d in info["workers"].values())
     except KeyError:  # dask.__version__ < 2.0
