@@ -275,7 +275,6 @@ def make_cluster_model(
         info = cluster.scheduler_info
     except AttributeError:
         info = cluster.scheduler.identity()
-    raise KeyError(info)
 
     try:
         cores = sum(d["nthreads"] for d in info["workers"].values())
@@ -299,6 +298,7 @@ def make_cluster_model(
         kernel_name=kernel_name,
         kernel_display_name=kernel_display_name
     )
+    raise KeyError(model)
     if adaptive:
         model["adapt"] = {"minimum": adaptive.minimum, "maximum": adaptive.maximum}
 
