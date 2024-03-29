@@ -48,7 +48,7 @@ async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
     adaptive = None
     if configuration.get("adapt"):
         adaptive = Adaptive(**configuration.get("adapt"))
-        await cluster.adapt(**configuration.get("adapt"))
+        cluster.adapt(**configuration.get("adapt"))
         # adaptive = cluster.adapt(**configuration.get("adapt"))
     elif configuration.get("workers") is not None:
         t = cluster.scale(configuration.get("workers"))
@@ -288,6 +288,7 @@ def make_cluster_model(
     try:
         cores = sum(d["nthreads"] for d in info["workers"].values())
     except KeyError:  # dask.__version__ < 2.0
+        raise KeyError(info)
         cores = sum(d["ncores"] for d in info["workers"].values())
     assert isinstance(info, dict)
     try:
