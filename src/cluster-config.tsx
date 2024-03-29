@@ -23,6 +23,7 @@ interface KernelSpecs {
 interface Kernel {
   name: string;
   display_name: string;
+  python_exec_path: string;
 }
 
 
@@ -82,7 +83,8 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const ks = this.props.kernelspecs;
     const kernel = {
       name: ks.default,
-      display_name: ks.kernelspecs[ks.default].spec.display_name
+      display_name: ks.kernelspecs[ks.default].spec.display_name,
+      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
     };
     const min_workers = DEFAULT_MIN_WORKERS;
     const max_workers = DEFAULT_MAX_WORKERS;
@@ -102,7 +104,8 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const ks = this.props.kernelspecs;
     const kernel = {
       name: kernel_name,
-      display_name: ks.kernelspecs[kernel_name].spec.display_name
+      display_name: ks.kernelspecs[kernel_name].spec.display_name,
+      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
     };
     this.setState({
       kernel: kernel
@@ -268,7 +271,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
           address: "http://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
           proxy_address: "api-dask-gateway-k8s-slurm.cms.geddes.rcac.purdue.edu:8000",
           public_address: "https://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
-          conda_env: kernel.name,
+          conda_env: kernel.python_exec_path.split("/bin/")[0],
           worker_cores: 1,
           worker_memory: 4,
           env: {"X509_USER_PROXY": "", "WORKDIR": ""}
@@ -278,7 +281,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
         address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu",
         proxy_address: "api-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8000",
         public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
-        conda_env: kernel.name,
+        conda_env: kernel.python_exec_path.split("/bin/")[0],
         worker_cores: 1,
         worker_memory: 4,
         env: {"X509_USER_PROXY": "", "WORKDIR": ""}
@@ -294,7 +297,8 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
         cluster_type={DEFAULT_CLUSTER_TYPE}
         kernel={{
           name: kernelspecs.default,
-          display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name
+          display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name,
+          python_exec_path: kernelspecs.kernelspecs[kernelspecs.default].spec.argv[0]
         }}
         min_workers={DEFAULT_MIN_WORKERS}
         max_workers={DEFAULT_MAX_WORKERS}
