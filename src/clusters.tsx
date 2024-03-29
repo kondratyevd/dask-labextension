@@ -37,7 +37,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { CommandRegistry } from '@lumino/commands';
 
-const DEFAULT_DASHBOARD_LINK = `/proxy/8787/status`;
 
 /**
  * A refresh interval (in ms) for polling the backend cluster manager.
@@ -79,7 +78,7 @@ export class DaskClusterManager extends Widget {
         return;
       }
 
-      // Not chechink for proxies
+      // Not checking for proxies
       options.setDashboardUrl(cluster.dashboard_link);
 
       const old = this._activeCluster;
@@ -707,11 +706,11 @@ function ClusterListingItem(props: IClusterListingItemProps) {
       </div>
     );
   }
-  let kernel_display_name: JSX.Element | null = null;
+  let kernel_display_name: React.JSX.Element | null = null;
   if (cluster.kernel_display_name!=="") {
     kernel_display_name = (
       <div className="dask-ClusterListingItem-stats">
-      Kernel: {cluster.kernel_display_name}
+      Kernel: {cluster.kernel_display_name as string}
     </div>
     )
   }

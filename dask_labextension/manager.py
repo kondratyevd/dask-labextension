@@ -3,8 +3,6 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import os
-import yaml
 import importlib
 from inspect import isawaitable
 from typing import Any, Dict, List, Union

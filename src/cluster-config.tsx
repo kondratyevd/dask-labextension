@@ -2,7 +2,7 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 import * as React from 'react';
 
-const DEFAULT_CLUSTER_TYPE = "local";
+const DEFAULT_CLUSTER_TYPE = "dask-gateway-k8s-slurm";
 const DEFAULT_MIN_WORKERS = 1;
 const DEFAULT_MAX_WORKERS = 2;
 
@@ -23,7 +23,6 @@ interface KernelSpecs {
 interface Kernel {
   name: string;
   display_name: string;
-  python_exec_path: string;
 }
 
 
@@ -44,6 +43,20 @@ namespace ClusterConfig {
   }
 }
 
+interface GatewayClusterConfig {
+  default: {
+    adapt: {
+      minimum: number;
+      maximum: number;
+    };
+  };
+  factory: {
+    class: string;
+    module: string;
+    args: any[];
+    kwargs?: {};
+  };
+}
 
 export class ClusterConfig extends React.Component<ClusterConfig.IProps, ClusterConfig.IState> {
   
@@ -69,8 +82,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const ks = this.props.kernelspecs;
     const kernel = {
       name: ks.default,
-      display_name: ks.kernelspecs[ks.default].spec.display_name,
-      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
+      display_name: ks.kernelspecs[ks.default].spec.display_name
     };
     const min_workers = DEFAULT_MIN_WORKERS;
     const max_workers = DEFAULT_MAX_WORKERS;
@@ -85,13 +97,12 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   onKernelChanged(event: React.ChangeEvent<{ value: unknown }>): void {
-    if (this.state.cluster_type == "local") { return }
+    // if (this.state.cluster_type == "local") { return }
     const kernel_name = event.target.value as string;
     const ks = this.props.kernelspecs;
     const kernel = {
       name: kernel_name,
-      display_name: ks.kernelspecs[kernel_name].spec.display_name,
-      python_exec_path: ks.kernelspecs[kernel_name].spec.argv[0]
+      display_name: ks.kernelspecs[kernel_name].spec.display_name
     };
     this.setState({
       kernel: kernel
@@ -137,13 +148,16 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               <input
                 type="radio"
                 name="clusterType"
-                value="local"
-                checked={cluster_type=="local"}
+                value="dask-gateway-k8s-slurm"
+                checked={cluster_type=="dask-gateway-k8s-slurm"}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
                 }}
               />
-              Local cluster
+              DaskGateway + SLURM 
+              <div style={{fontSize: 'smaller', fontStyle: 'italic', marginLeft: '10px'}}>
+                (Hammer cluster: Purdue users only)
+              </div>
             </label>
           </div>
           <div className="dask-ClusterConfigSection-item">
@@ -151,27 +165,28 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               <input
                 type="radio"
                 name="clusterType"
-                value="slurm"
-                checked={cluster_type=="slurm"}
+                value="dask-gateway-k8s"
+                checked={cluster_type=="dask-gateway-k8s"}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
                 }}
               />
-              SLURM cluster
+              DaskGateway + Kubernetes 
+              <div style={{fontSize: 'smaller', fontStyle: 'italic', marginLeft: '10px'}}>
+                (Geddes cluster: All users)
+              </div>
             </label>
-            {(cluster_type=="slurm") && (
-              <div className="dask-ClusterConfigSection-item">
-                <span
-                  className={`dask-ClusterConfigSection-label ${
-                    cluster_type!=="slurm" ? disabledClass : ''
-                  }`}
-                >
-                </span>
-                <select
+          </div>
+        </div>
+      </div>
+      <div>
+        <span className="dask-ScalingHeader">Kernel / Conda environment</span>
+        <div className="dask-ClusterConfigSection">
+          <select
                   className={`dask-ClusterConfigSelect ${
-                    cluster_type!=="slurm" ? disabledClass : ''
+                    cluster_type=="local" ? disabledClass : ''
                   }`}
-                  disabled={cluster_type!=="slurm"}
+                  disabled={cluster_type=="local"}
                   onChange={evt => {
                     this.onKernelChanged(evt);
                   }}
@@ -181,10 +196,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
                       return (<option value={kernel.name} selected={kernel.name === ks.default}> {kernel.spec.display_name} </option>)
                     }
                   })}
-                </select>
-              </div>
-            )}
-          </div>
+          </select>
         </div>
       </div>
       <div>
@@ -239,51 +251,44 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
 export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|null> {
   let new_config = {};
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => {
-    if (cluster_type=="slurm") {
-      new_config = {
-        default: {
-          adapt: {
-              minimum: min_workers,
-              maximum: max_workers
-            }
-        },
-        factory: {
-          class: "PurdueSLURMCluster",
-          module: "purdue_slurm",
-          args: [],
-          kwargs: {
-            account: "cms",
-            cores: 1,
-            memory: "2G",
-            job_extra_directives: [
-              "--qos=normal",
-              "-o /tmp/dask_job.%j.%N.out",
-              "-e /tmp/dask_job.%j.%N.error"
-            ],
-            kernel_name: kernel.name,
-            kernel_display_name: kernel.display_name,
-            python: kernel.python_exec_path
-          }
-        }
-      };
-    } else if (cluster_type=="local") {
-      new_config = {
-        default: {
-          adapt: {
+    const new_config: GatewayClusterConfig = {
+      default: {
+        adapt: {
             minimum: min_workers,
             maximum: max_workers
-        }
-        },
-        factory: {
-          class: "LocalCluster",
-          module: "dask.distributed",
-          args: [],
-          kwargs: {}
-        }
-      };
+          }
+      },
+      factory: {
+        class: "GatewayCluster",
+        module: "dask_gateway",
+        args: [],
+      }
+    };
+    if (cluster_type=="dask-gateway-k8s-slurm") {
+      new_config.factory.kwargs = {
+          address: "http://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
+          proxy_address: "api-dask-gateway-k8s-slurm.cms.geddes.rcac.purdue.edu:8000",
+          public_address: "https://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
+          conda_env: kernel.name,
+          worker_cores: 1,
+          worker_memory: 4,
+          env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+      }
+    } else if (cluster_type=="dask-gateway-k8s") {
+      new_config.factory.kwargs = {
+        address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu",
+        proxy_address: "api-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8000",
+        public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
+        conda_env: kernel.name,
+        worker_cores: 1,
+        worker_memory: 4,
+        env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+      }
     } else {
-      new_config = {}
+      new_config.factory.kwargs = {}
     }
+    console.log(cluster_type)
+    console.log(new_config)
   };
   return showDialog({
     title: `Configure Dask cluster`,
@@ -292,8 +297,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
         cluster_type={DEFAULT_CLUSTER_TYPE}
         kernel={{
           name: kernelspecs.default,
-          display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name,
-          python_exec_path: kernelspecs.kernelspecs[kernelspecs.default].spec.argv[0]
+          display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name
         }}
         min_workers={DEFAULT_MIN_WORKERS}
         max_workers={DEFAULT_MAX_WORKERS}
