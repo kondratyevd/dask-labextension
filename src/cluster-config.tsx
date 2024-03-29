@@ -249,21 +249,20 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
  */
 
 export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|null> {
-  let new_config = {};
+  let new_config: GatewayClusterConfig = {
+    default: {
+      adapt: {
+          minimum: 1,
+          maximum: 2
+        }
+    },
+    factory: {
+      class: "GatewayCluster",
+      module: "dask_gateway",
+      args: [],
+    }
+  };
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => {
-    const new_config: GatewayClusterConfig = {
-      default: {
-        adapt: {
-            minimum: min_workers,
-            maximum: max_workers
-          }
-      },
-      factory: {
-        class: "GatewayCluster",
-        module: "dask_gateway",
-        args: [],
-      }
-    };
     if (cluster_type=="dask-gateway-k8s-slurm") {
       new_config.factory.kwargs = {
           address: "http://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
@@ -285,10 +284,8 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
         env: {"X509_USER_PROXY": "", "WORKDIR": ""}
       }
     } else {
-      new_config.factory.kwargs = {}
+      // new_config = {}
     }
-    console.log(cluster_type)
-    console.log(new_config)
   };
   return showDialog({
     title: `Configure Dask cluster`,
