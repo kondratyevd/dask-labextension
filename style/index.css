@@ -322,6 +322,115 @@ button.dask-ClusterListingItem-scale {
 }
 
 /**
+ * Rules for the cluster config dialog.
+ */
+
+ .dask-ClusterConfigHeader {
+  font-size: var(--jp-ui-font-size2);
+}
+
+.dask-ClusterConfigSection {
+  /* margin-left: 12px; */
+  padding: 10px;
+}
+
+/* Custom radio button styles */
+.dask-ClusterConfigSection-item input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  outline: none;
+  transition: all 0.2s;
+  position: relative;
+  margin: 8px 8px 8px 0px;
+  font-size: var(--jp-ui-font-size3);
+}
+
+.dask-ClusterConfigSection-item input[type="radio"]:before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 10px;
+  height: 10px;
+  background-color: #007bff;
+  border-radius: 50%;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.dask-ClusterConfigSection-item input[type="radio"]:checked:before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.dask-ClusterConfigSection-item label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  margin-left: 18px;
+}
+
+.dask-ClusterConfigSection-item label:hover {
+  color: #007bff;
+}
+
+.dask-ClusterConfigSection-item input[type="radio"]:focus-visible {
+  outline: 2px solid #007bff;
+}
+
+.dask-ClusterConfigSelect {
+  position: relative;
+  /* appearance: auto;
+  -webkit-appearance: auto;
+  -moz-appearance: auto; */
+  width: calc(80% - 24px);
+  /* height: 24px;
+  line-height: 14px; */
+  padding: 8px;
+  padding: 0 25px 0 10px;
+  text-align: left;
+  transition: all 0.2s;
+  margin-left: 44px;
+  margin-top: 4px;
+}
+
+.dask-ClusterConfigSelect:disabled {
+  /* background-color: #f2f2f2;
+  color: var(--jp-ui-font-color3); */
+  cursor: not-allowed;
+}
+
+.dask-ClusterConfigSelect:focus:not(:disabled) {
+  border-color: #007bff;
+  /* box-shadow: 0 0 4px rgba(0, 123, 255, 0.4); */
+}
+
+.dask-ClusterConfigHeader input[type='checkbox'] {
+  position: relative;
+  top: 4px;
+  left: 4px;
+  margin: 0 0 0 8px;
+}
+
+.dask-ClusterConfigSection input[type='number'] {
+  width: 72px;
+}
+
+.dask-ClusterConfigSection-label.dask-mod-disabled {
+  color: var(--jp-ui-font-color3);
+}
+
+.dask-ClusterConfigSection input[type='number']:disabled {
+  color: var(--jp-ui-font-color3);
+}
+
+/**
  * Rules for the logos.
  */
 

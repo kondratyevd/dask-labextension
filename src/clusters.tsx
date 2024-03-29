@@ -5,7 +5,6 @@ import {
   CommandToolbarButton
 } from '@jupyterlab/apputils';
 
-// import { IChangedArgs, URLExt } from '@jupyterlab/coreutils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 
 import * as nbformat from '@jupyterlab/nbformat';
@@ -32,9 +31,13 @@ import { Widget, PanelLayout } from '@lumino/widgets';
 
 import { showScalingDialog } from './scaling';
 
+import { showClusterConfigDialog } from './cluster-config';
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { CommandRegistry } from '@lumino/commands';
+
+const DEFAULT_DASHBOARD_LINK = `/proxy/8787/status`;
 
 /**
  * A refresh interval (in ms) for polling the backend cluster manager.
@@ -76,21 +79,8 @@ export class DaskClusterManager extends Widget {
         return;
       }
 
+      // Not chechink for proxies
       options.setDashboardUrl(cluster.dashboard_link);
-
-      // const proxyUrl = URLExt.join(this._serverSettings.baseUrl, 'proxy');
-      // const proxyPrefix = new URL(proxyUrl).pathname;
-
-      // if (cluster.dashboard_link.indexOf(proxyPrefix) !== -1) {
-      //   // If the dashboard link is already proxied using
-      //   // jupyter_server_proxy, don't proxy again. This
-      //   // can happen if the user has overridden the dashboard
-      //   // URL to the jupyter_server_proxy URL manually.
-      //   options.setDashboardUrl(cluster.dashboard_link);
-      // } else {
-      //   // Otherwise, use the internal proxy URL.
-      //   options.setDashboardUrl(`dask/dashboard/${cluster.id}`);
-      // }
 
       const old = this._activeCluster;
       if (old && old.id === cluster.id) {
@@ -447,10 +437,22 @@ export class DaskClusterManager extends Widget {
    */
   private async _launchCluster(): Promise<IClusterModel> {
     this._isReady = false;
+    const kernelspecs_response = await ServerConnection.makeRequest(
+      `${this._serverSettings.baseUrl}api/kernelspecs`,
+      { 
+        method: 'GET',
+      },
+      this._serverSettings
+    );
+    const cluster_config = await showClusterConfigDialog(await kernelspecs_response.json());
+    if (cluster_config === null) { return };
     this._registry.notifyCommandChanged(this._launchClusterId);
     const response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}dask/clusters`,
-      { method: 'PUT' },
+      { 
+        method: 'PUT',
+        body: JSON.stringify(cluster_config)
+      },
       this._serverSettings
     );
     if (response.status !== 200) {
@@ -705,6 +707,14 @@ function ClusterListingItem(props: IClusterListingItemProps) {
       </div>
     );
   }
+  let kernel_display_name: JSX.Element | null = null;
+  if (cluster.kernel_display_name!=="") {
+    kernel_display_name = (
+      <div className="dask-ClusterListingItem-stats">
+      Kernel: {cluster.kernel_display_name}
+    </div>
+    )
+  }
 
   return (
     <li
@@ -722,25 +732,12 @@ function ClusterListingItem(props: IClusterListingItemProps) {
       >
         Scheduler Address: {cluster.scheduler_address}
       </div>
-      <div className="dask-ClusterListingItem-link">
-        Dashboard URL:{' '}
-        <a
-          target="_blank"
-          rel="noreferrer"
-          href={cluster.dashboard_link}
-          title={cluster.dashboard_link}
-        >
-          {cluster.dashboard_link}
-        </a>
-      </div>
+      {kernel_display_name}
       <div className="dask-ClusterListingItem-stats">
-        Number of Cores: {cluster.cores}
+        Number of Workers: {cluster.workers}
       </div>
       <div className="dask-ClusterListingItem-stats">
         Memory: {cluster.memory}
-      </div>
-      <div className="dask-ClusterListingItem-stats">
-        Number of Workers: {cluster.workers}
       </div>
       {minimum}
       {maximum}
