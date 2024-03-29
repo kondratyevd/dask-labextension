@@ -61,12 +61,16 @@ class DaskClusterHandler(APIHandler):
                 403, f"A Dask cluster with ID {cluster_id} already exists!"
             )
 
-        try:
-            cluster_model = await manager.start_cluster(cluster_id, custom_config=cluster_config)
-            self.set_status(200)
-            self.finish(json.dumps(cluster_model))
-        except Exception as e:
-            raise web.HTTPError(500, str(e))
+        cluster_model = await manager.start_cluster(cluster_id, custom_config=cluster_config)
+        self.set_status(200)
+        self.finish(json.dumps(cluster_model))
+        raise KeyError(cluster_model)
+        # try:
+        #     cluster_model = await manager.start_cluster(cluster_id, custom_config=cluster_config)
+        #     self.set_status(200)
+        #     self.finish(json.dumps(cluster_model))
+        # except Exception as e:
+        #     raise web.HTTPError(500, str(e))
 
     @web.authenticated
     async def patch(self, cluster_id):
