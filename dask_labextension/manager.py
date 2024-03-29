@@ -107,6 +107,8 @@ class DaskClusterManager:
 
         self._clusters[cluster_id] = cluster
         self._cluster_names[cluster_id] = cluster_name
+        model = make_cluster_model(cluster_id, cluster_name, cluster, adaptive=adaptive) 
+        raise KeyError(model)
         return make_cluster_model(cluster_id, cluster_name, cluster, adaptive=adaptive)
 
     async def close_cluster(self, cluster_id: str) -> Union[ClusterModel, None]:
