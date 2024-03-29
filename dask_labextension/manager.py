@@ -22,6 +22,11 @@ ClusterModel = Dict[str, Any]
 Cluster = Any
 
 
+class Adaptive:
+    def __init__(self,  minimum: int, maximum: int):
+        self.minimum = minimum
+        self.maximum = maximum
+
 async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
     if custom_config:
         dask.config.global_config["labextension"] = custom_config
@@ -42,7 +47,9 @@ async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
 
     adaptive = None
     if configuration.get("adapt"):
-        adaptive = cluster.adapt(**configuration.get("adapt"))
+        adaptive = Adaptive(**configuration.get("adapt"))
+        await cluster.adapt(**configuration.get("adapt"))
+        # adaptive = cluster.adapt(**configuration.get("adapt"))
     elif configuration.get("workers") is not None:
         t = cluster.scale(configuration.get("workers"))
         if isawaitable(t):
@@ -107,8 +114,6 @@ class DaskClusterManager:
 
         self._clusters[cluster_id] = cluster
         self._cluster_names[cluster_id] = cluster_name
-        model = make_cluster_model(cluster_id, cluster_name, cluster, adaptive=adaptive) 
-        raise KeyError(model)
         return make_cluster_model(cluster_id, cluster_name, cluster, adaptive=adaptive)
 
     async def close_cluster(self, cluster_id: str) -> Union[ClusterModel, None]:
@@ -214,7 +219,9 @@ class DaskClusterManager:
             return model
 
         # Otherwise, rescale the model.
-        adaptive = cluster.adapt(minimum=minimum, maximum=maximum)
+        adaptive = Adaptive(minimum=minimum, maximum=maximum)
+        cluster.adapt(minimum=minimum, maximum=maximum)
+        # adaptive = cluster.adapt(minimum=minimum, maximum=maximum)
         self._adaptives[cluster_id] = adaptive
         return make_cluster_model(cluster_id, name, cluster, adaptive)
 
