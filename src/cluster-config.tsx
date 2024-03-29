@@ -44,21 +44,6 @@ namespace ClusterConfig {
   }
 }
 
-interface GatewayClusterConfig {
-  default: {
-    adapt: {
-      minimum: number;
-      maximum: number;
-    };
-  };
-  factory: {
-    class: string;
-    module: string;
-    args: any[];
-    kwargs?: {};
-  };
-}
-
 export class ClusterConfig extends React.Component<ClusterConfig.IProps, ClusterConfig.IState> {
   
   constructor(props: ClusterConfig.IProps) {
@@ -252,42 +237,53 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
  */
 
 export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|null> {
-  let new_config: GatewayClusterConfig = {
-    default: {
-      adapt: {
-          minimum: 1,
-          maximum: 2
-        }
-    },
-    factory: {
-      class: "GatewayCluster",
-      module: "dask_gateway",
-      args: [],
-    }
-  };
+  let new_config = {}
+
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => {
     if (cluster_type=="dask-gateway-k8s-slurm") {
-      new_config.factory.kwargs = {
-          address: "http://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
-          proxy_address: "api-dask-gateway-k8s-slurm.cms.geddes.rcac.purdue.edu:8000",
-          public_address: "https://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
-          conda_env: kernel.python_exec_path.split("/bin/")[0],
-          worker_cores: 1,
-          worker_memory: 4,
-          env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+      new_config = {
+        default: {
+          adapt: {
+              minimum: min_workers,
+              maximum: max_workers
+            }
+        },
+        factory: {
+            class: "GatewayCluster",
+            module: "dask_gateway",
+            args: [],    
+            address: "http://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
+            proxy_address: "api-dask-gateway-k8s-slurm.cms.geddes.rcac.purdue.edu:8000",
+            public_address: "https://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
+            conda_env: kernel.python_exec_path.split("/bin/")[0],
+            worker_cores: 1,
+            worker_memory: 4,
+            env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+        }
       }
     } else if (cluster_type=="dask-gateway-k8s") {
-      new_config.factory.kwargs = {
-        address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu",
-        proxy_address: "api-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8000",
-        public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
-        conda_env: kernel.python_exec_path.split("/bin/")[0],
-        worker_cores: 1,
-        worker_memory: 4,
-        env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+      new_config = {
+        default: {
+          adapt: {
+              minimum: min_workers,
+              maximum: max_workers
+            }
+        },
+        factory: {
+            class: "GatewayCluster",
+            module: "dask_gateway",
+            args: [],    
+            address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu",
+            proxy_address: "api-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8000",
+            public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
+            conda_env: kernel.python_exec_path.split("/bin/")[0],
+            worker_cores: 1,
+            worker_memory: 4,
+            env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+        }
       }
     } else {
-      // new_config = {}
+      new_config = {}
     }
   };
   return showDialog({
