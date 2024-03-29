@@ -249,9 +249,10 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             }
         },
         factory: {
-            class: "GatewayCluster",
-            module: "dask_gateway",
-            args: [],    
+          class: "GatewayCluster",
+          module: "dask_gateway",
+          args: [],
+          kwargs: {
             address: "http://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
             proxy_address: "api-dask-gateway-k8s-slurm.cms.geddes.rcac.purdue.edu:8000",
             public_address: "https://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
@@ -259,6 +260,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             worker_cores: 1,
             worker_memory: 4,
             env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+          }
         }
       }
     } else if (cluster_type=="dask-gateway-k8s") {
@@ -270,9 +272,10 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             }
         },
         factory: {
-            class: "GatewayCluster",
-            module: "dask_gateway",
-            args: [],    
+          class: "GatewayCluster",
+          module: "dask_gateway",
+          args: [],
+          kwargs: {
             address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu",
             proxy_address: "api-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8000",
             public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
@@ -280,6 +283,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             worker_cores: 1,
             worker_memory: 4,
             env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+          }
         }
       }
     } else {
