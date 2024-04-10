@@ -10,7 +10,7 @@ from uuid import uuid4
 
 import dask
 from dask.utils import format_bytes
-from dask.distributed import Adaptive
+# from dask.distributed import Adaptive
 from tornado.ioloop import IOLoop
 from tornado.concurrent import Future
 
@@ -48,7 +48,7 @@ async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
     adaptive = None
     if configuration.get("adapt"):
         adaptive = Adaptive(**configuration.get("adapt"))
-        cluster.adapt(**configuration.get("adapt"))
+        await cluster.adapt(**configuration.get("adapt"))
         # adaptive = cluster.adapt(**configuration.get("adapt"))
     elif configuration.get("workers") is not None:
         t = cluster.scale(configuration.get("workers"))
@@ -198,7 +198,7 @@ class DaskClusterManager:
             await t
         return make_cluster_model(cluster_id, name, cluster, adaptive=None)
 
-    def adapt_cluster(
+    async def adapt_cluster(
         self, cluster_id: str, minimum: int, maximum: int
     ) -> Union[ClusterModel, None]:
         cluster = self._clusters.get(cluster_id)
@@ -220,7 +220,7 @@ class DaskClusterManager:
 
         # Otherwise, rescale the model.
         adaptive = Adaptive(minimum=minimum, maximum=maximum)
-        cluster.adapt(minimum=minimum, maximum=maximum)
+        await cluster.adapt(minimum=minimum, maximum=maximum)
         # adaptive = cluster.adapt(minimum=minimum, maximum=maximum)
         self._adaptives[cluster_id] = adaptive
         return make_cluster_model(cluster_id, name, cluster, adaptive)
