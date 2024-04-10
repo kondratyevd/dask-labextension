@@ -5,6 +5,8 @@ import * as React from 'react';
 const DEFAULT_CLUSTER_TYPE = "dask-gateway-k8s-slurm";
 const DEFAULT_MIN_WORKERS = 1;
 const DEFAULT_MAX_WORKERS = 2;
+const DEFAULT_WORKER_CORES = 1;
+const DEFAULT_WORKER_MEMORY = 4;
 
 interface KernelSpecs {
   default: string;
@@ -33,6 +35,8 @@ namespace ClusterConfig {
     kernel: Kernel;
     min_workers: number;
     max_workers: number;
+    worker_cores: number;
+    worker_memory: number;
   }
   export interface IProps {
     cluster_type: string;
@@ -40,7 +44,9 @@ namespace ClusterConfig {
     kernel: Kernel;
     min_workers: number;
     max_workers: number;
-    stateEscapeHatch: (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => void;
+    worker_cores: number;
+    worker_memory: number;
+    stateEscapeHatch: (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => void;
   }
 }
 
@@ -52,7 +58,9 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const kernel = props.kernel;
     const min_workers = props.min_workers;
     const max_workers = props.max_workers;
-    this.state = { cluster_type, kernel, min_workers, max_workers};
+    const worker_cores = props.worker_cores;
+    const worker_memory = props.worker_memory;
+    this.state = { cluster_type, kernel, min_workers, max_workers, worker_cores, worker_memory};
   }
 
   componentDidMount() {
@@ -60,7 +68,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   componentDidUpdate(): void {
-    this.props.stateEscapeHatch(this.state.cluster_type, this.state.kernel, this.state.min_workers, this.state.max_workers);
+    this.props.stateEscapeHatch(this.state.cluster_type, this.state.kernel, this.state.min_workers, this.state.max_workers, this.state.worker_cores, this.state.worker_memory);
   }
 
   resetValues(): void {
@@ -73,8 +81,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     };
     const min_workers = DEFAULT_MIN_WORKERS;
     const max_workers = DEFAULT_MAX_WORKERS;
-    this.setState({ cluster_type, kernel, min_workers, max_workers });
-    this.props.stateEscapeHatch(cluster_type, kernel, min_workers, max_workers);
+    const worker_cores = DEFAULT_WORKER_CORES;
+    const worker_memory = DEFAULT_WORKER_MEMORY;
+    this.setState({ cluster_type, kernel, min_workers, max_workers, worker_cores, worker_memory });
+    this.props.stateEscapeHatch(cluster_type, kernel, min_workers, max_workers, worker_cores, worker_memory);
   }
 
   onClusterTypeChanged(event: React.ChangeEvent<{ value: unknown }>): void {
@@ -117,6 +127,18 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     });
   }
 
+  onWorkerCoresChanged(event: React.ChangeEvent<{ value: unknown }>): void {
+    this.setState({
+      worker_cores: parseInt((event.target as HTMLInputElement).value, 10)
+    });
+  }
+
+  onWorkerMemoryChanged(event: React.ChangeEvent<{ value: unknown }>): void {
+    this.setState({
+      worker_memory: parseInt((event.target as HTMLInputElement).value, 10)
+    });
+  }
+
   /**
    * Render the component..
    */
@@ -124,6 +146,8 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const cluster_type = this.state.cluster_type;
     const min_workers = this.state.min_workers;
     const max_workers = this.state.max_workers;
+    const worker_cores = this.state.worker_cores;
+    const worker_memory = this.state.worker_memory;
     const ks = this.props.kernelspecs;
     const disabledClass = 'dask-mod-disabled';
     return (
@@ -199,6 +223,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               disabled={false}
               type="number"
               value={min_workers}
+              min="0"
               step="1"
               onChange={evt => {
                 this.onMinimumChanged(evt);
@@ -216,9 +241,49 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               disabled={false}
               type="number"
               value={max_workers}
+              min="0"
               step="1"
               onChange={evt => {
                 this.onMaximumChanged(evt);
+              }}
+            />
+          </div>
+        </div>
+      </div>
+      <div>
+        <span className="dask-ScalingHeader">Worker resources</span>
+        <div className="dask-ClusterConfigSection">
+          <div className="dask-ScalingSection-item">
+            <span className={"dask-ScalingSection-label"}>
+              Cores per worker
+            </span>
+            <input
+              className="dask-ScalingInput"
+              disabled={false}
+              type="number"
+              value={worker_cores}
+              min="1"
+              max="32"
+              step="1"
+              onChange={evt => {
+                this.onMinimumChanged(evt);
+              }}
+            />
+          </div>
+          <div className="dask-ScalingSection-item">
+            <span className={"dask-ScalingSection-label"}>
+              Worker memory [GB]
+            </span>
+            <input
+              className="dask-ScalingInput"
+              disabled={false}
+              type="number"
+              value={worker_memory}
+              min="1"
+              max="16"
+              step="1"
+              onChange={evt => {
+                this.onMinimumChanged(evt);
               }}
             />
           </div>
@@ -239,7 +304,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
 export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|null> {
   let new_config = {}
 
-  const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => {
+  const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => {
     if (cluster_type=="dask-gateway-k8s-slurm") {
       new_config = {
         default: {
@@ -257,8 +322,8 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             proxy_address: "api-dask-gateway-k8s-slurm.cms.geddes.rcac.purdue.edu:8000",
             public_address: "https://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
             conda_env: kernel.python_exec_path.split("/bin/")[0],
-            worker_cores: 1,
-            worker_memory: 4,
+            worker_cores: worker_cores,
+            worker_memory: worker_memory,
             env: {"X509_USER_PROXY": "", "WORKDIR": ""}
           }
         }
@@ -280,8 +345,8 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             proxy_address: "api-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8000",
             public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
             conda_env: kernel.python_exec_path.split("/bin/")[0],
-            worker_cores: 1,
-            worker_memory: 4,
+            worker_cores: worker_cores,
+            worker_memory: worker_memory,
             env: {"X509_USER_PROXY": "", "WORKDIR": ""}
           }
         }
@@ -302,6 +367,8 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
         }}
         min_workers={DEFAULT_MIN_WORKERS}
         max_workers={DEFAULT_MAX_WORKERS}
+        worker_cores={DEFAULT_WORKER_CORES}
+        worker_memory={DEFAULT_WORKER_MEMORY}
         kernelspecs={kernelspecs}
         stateEscapeHatch={escapeHatch}
       />
