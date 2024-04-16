@@ -3,6 +3,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import os
 import importlib
 from inspect import isawaitable
 from typing import Any, Dict, List, Union
@@ -36,6 +37,12 @@ async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
 
     kwargs = dask.config.get("labextension.factory.kwargs")
     kwargs = {key.replace("-", "_"): entry for key, entry in kwargs.items()}
+
+    if "env" not in kwargs:
+        kwargs["env"] = {}
+    kwargs["env"]["NB_UID"] = os.environ["NB_UID"]
+    kwargs["env"]["NB_GID"] = os.environ["NB_GID"]
+    kwargs["env_propagate"] = ["PYTHONPATH", "X509_CERT_DIR", "X509_USER_PROXY", "LD_LIBRARY_PATH"]
 
     cluster = await Cluster(
         *dask.config.get("labextension.factory.args"), **kwargs, asynchronous=True

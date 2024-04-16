@@ -347,7 +347,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             conda_env: kernel.python_exec_path.split("/bin/")[0],
             worker_cores: worker_cores,
             worker_memory: worker_memory,
-            env: {"NB_UID": 1000, "NB_GID": 1000}
+            env: {}
           }
         }
       }
