@@ -168,7 +168,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               />
               DaskGateway + SLURM 
               <div style={{fontSize: 'smaller', fontStyle: 'italic', marginLeft: '10px'}}>
-                (Hammer cluster: Purdue users only)
+                (Hammer cluster: <span style="color: red;">Purdue users only</span>)
               </div>
             </label>
           </div>
@@ -185,7 +185,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               />
               DaskGateway + Kubernetes 
               <div style={{fontSize: 'smaller', fontStyle: 'italic', marginLeft: '10px'}}>
-                (Geddes cluster: All users)
+                (Geddes cluster: <span style="color: red;">All users</span>)
               </div>
             </label>
           </div>

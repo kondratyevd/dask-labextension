@@ -42,7 +42,7 @@ async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
         kwargs["env"] = {}
     kwargs["env"]["NB_UID"] = os.environ["NB_UID"]
     kwargs["env"]["NB_GID"] = os.environ["NB_GID"]
-    kwargs["env_propagate"] = ["PYTHONPATH", "X509_CERT_DIR", "X509_USER_PROXY", "LD_LIBRARY_PATH"]
+    kwargs["env_propagate"] = "PYTHONPATH,X509_CERT_DIR,X509_USER_PROXY,LD_LIBRARY_PATH"
 
     cluster = await Cluster(
         *dask.config.get("labextension.factory.args"), **kwargs, asynchronous=True
