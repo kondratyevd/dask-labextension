@@ -288,7 +288,6 @@ def make_cluster_model(
     try:
         cores = sum(d["nthreads"] for d in info["workers"].values())
     except KeyError:  # dask.__version__ < 2.0
-        raise KeyError(info)
         cores = sum(d["ncores"] for d in info["workers"].values())
     assert isinstance(info, dict)
     try:
