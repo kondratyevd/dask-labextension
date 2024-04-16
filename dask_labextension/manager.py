@@ -114,10 +114,7 @@ class DaskClusterManager:
 
         self._clusters[cluster_id] = cluster
         self._cluster_names[cluster_id] = cluster_name
-        model = make_cluster_model(cluster_id, cluster_name, cluster, adaptive=adaptive)
-        if isawaitable(model):
-            await model
-        return model
+        return make_cluster_model(cluster_id, cluster_name, cluster, adaptive=adaptive)
 
     async def close_cluster(self, cluster_id: str) -> Union[ClusterModel, None]:
         """
@@ -138,10 +135,7 @@ class DaskClusterManager:
             self._clusters.pop(cluster_id)
             name = self._cluster_names.pop(cluster_id)
             adaptive = self._adaptives.pop(cluster_id, None)
-            model = make_cluster_model(cluster_id, name, cluster, adaptive)
-            if isawaitable(model):
-                await model
-            return model
+            return make_cluster_model(cluster_id, name, cluster, adaptive)
 
         else:
             return None
@@ -196,18 +190,13 @@ class DaskClusterManager:
         # Check if it is actually different.
         model = make_cluster_model(cluster_id, name, cluster, adaptive)
         if model.get("adapt") is None and model["workers"] == n:
-            if isawaitable(model):
-                await model
             return model
 
         # Otherwise, rescale the model.
         t = cluster.scale(n)
         if isawaitable(t):
             await t
-        model = make_cluster_model(cluster_id, name, cluster, adaptive=None)
-        if isawaitable(model):
-            await model
-        return model
+        return make_cluster_model(cluster_id, name, cluster, adaptive=None)
 
     async def adapt_cluster(
         self, cluster_id: str, minimum: int, maximum: int
@@ -227,8 +216,6 @@ class DaskClusterManager:
             and model["adapt"]["minimum"] == minimum
             and model["adapt"]["maximum"] == maximum
         ):
-            if isawaitable(model):
-                await model
             return model
 
         # Otherwise, rescale the model.
@@ -236,11 +223,7 @@ class DaskClusterManager:
         await cluster.adapt(minimum=minimum, maximum=maximum)
         # adaptive = cluster.adapt(minimum=minimum, maximum=maximum)
         self._adaptives[cluster_id] = adaptive
-
-        model = make_cluster_model(cluster_id, name, cluster, adaptive)
-        if isawaitable(model):
-            await model
-        return model
+        return make_cluster_model(cluster_id, name, cluster, adaptive)
 
     async def close(self):
         """Close all clusters and cleanup"""
