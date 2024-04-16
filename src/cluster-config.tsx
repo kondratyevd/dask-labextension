@@ -324,7 +324,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             conda_env: kernel.python_exec_path.split("/bin/")[0],
             worker_cores: worker_cores,
             worker_memory: worker_memory,
-            env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+            env: {}
           }
         }
       }
@@ -341,13 +341,13 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
           module: "dask_gateway",
           args: [],
           kwargs: {
-            address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu",
-            proxy_address: "api-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8000",
+            address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu/",
+            proxy_address: "traefik-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8786",
             public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
             conda_env: kernel.python_exec_path.split("/bin/")[0],
             worker_cores: worker_cores,
             worker_memory: worker_memory,
-            env: {"X509_USER_PROXY": "", "WORKDIR": ""}
+            env: {"NB_UID": 1000, "NB_GID": 1000}
           }
         }
       }
