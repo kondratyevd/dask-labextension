@@ -99,7 +99,7 @@ class DaskClusterManager:
             cluster_id = str(uuid4())
 
         cluster, adaptive = await make_cluster(configuration, custom_config=custom_config)
-        raise ValueError(cluster.scheduler_info)
+        raise ValueError(cluster.__dict__)
         self._n_clusters += 1
 
         # Check for a name in the config
