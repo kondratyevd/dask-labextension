@@ -29,6 +29,7 @@ class Adaptive:
         self.maximum = maximum
 
 async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
+    env_override = dask.config.get("labextension.env_override", {})
     if custom_config:
         dask.config.global_config["labextension"] = custom_config
 
@@ -38,11 +39,9 @@ async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
     kwargs = dask.config.get("labextension.factory.kwargs")
     kwargs = {key.replace("-", "_"): entry for key, entry in kwargs.items()}
 
-    if "env" not in kwargs:
-        kwargs["env"] = {}
-    kwargs["env"]["NB_UID"] = os.environ["NB_UID"]
-    kwargs["env"]["NB_GID"] = os.environ["NB_GID"]
-    kwargs["env_propagate"] = "PYTHONPATH,X509_CERT_DIR,X509_USER_PROXY,LD_LIBRARY_PATH"
+    kwargs["env"] = dict(os.environ)
+    for k,v in env_override.items():
+        kwargs["env"][k] = v
 
     cluster = await Cluster(
         *dask.config.get("labextension.factory.args"), **kwargs, asynchronous=True
