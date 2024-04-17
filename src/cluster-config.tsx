@@ -2,7 +2,7 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 import * as React from 'react';
 
-const DEFAULT_CLUSTER_TYPE = "dask-gateway-k8s-slurm";
+// const DEFAULT_CLUSTER_TYPE = "dask-gateway-k8s-slurm";
 const DEFAULT_MIN_WORKERS = 1;
 const DEFAULT_MAX_WORKERS = 2;
 const DEFAULT_WORKER_CORES = 1;
@@ -28,11 +28,17 @@ interface Kernel {
   python_exec_path: string;
 }
 
+interface UserInfo {
+  identity: {
+    username: string
+  }
+}
 
 namespace ClusterConfig {
   export interface IState {
     cluster_type: string;
     kernel: Kernel;
+    user_info: UserInfo;
     min_workers: number;
     max_workers: number;
     worker_cores: number;
@@ -42,6 +48,7 @@ namespace ClusterConfig {
     cluster_type: string;
     kernelspecs: KernelSpecs;
     kernel: Kernel;
+    user_info: UserInfo;
     min_workers: number;
     max_workers: number;
     worker_cores: number;
@@ -56,11 +63,12 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     super(props);
     const cluster_type = props.cluster_type;
     const kernel = props.kernel;
+    const user_info = props.user_info;
     const min_workers = props.min_workers;
     const max_workers = props.max_workers;
     const worker_cores = props.worker_cores;
     const worker_memory = props.worker_memory;
-    this.state = { cluster_type, kernel, min_workers, max_workers, worker_cores, worker_memory};
+    this.state = { cluster_type, kernel, user_info, min_workers, max_workers, worker_cores, worker_memory};
   }
 
   componentDidMount() {
@@ -72,7 +80,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   resetValues(): void {
-    const cluster_type = DEFAULT_CLUSTER_TYPE;
+    let username = this.props.user_info.identity.username;
+    const cluster_type = username.includes("-cern") || username.includes("-fnal")
+    ? "dask-gateway-k8s"
+    : "dask-gateway-k8s-slurm";
     const ks = this.props.kernelspecs;
     const kernel = {
       name: ks.default,
@@ -301,8 +312,13 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
  *   If they pressed the cancel button, it resolves with the original model.
  */
 
-export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|null> {
+export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: UserInfo): Promise<{}|null> {
   let new_config = {}
+
+  let username = user_info.identity.username;
+  const cluster_type = username.includes("-cern") || username.includes("-fnal")
+    ? "dask-gateway-k8s"
+    : "dask-gateway-k8s-slurm";
 
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => {
     if (cluster_type=="dask-gateway-k8s-slurm") {
@@ -323,8 +339,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             public_address: "https://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
             conda_env: kernel.python_exec_path.split("/bin/")[0],
             worker_cores: worker_cores,
-            worker_memory: worker_memory,
-            env: {}
+            worker_memory: worker_memory
           }
         }
       }
@@ -346,8 +361,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
             conda_env: kernel.python_exec_path.split("/bin/")[0],
             worker_cores: worker_cores,
-            worker_memory: worker_memory,
-            env: {}
+            worker_memory: worker_memory
           }
         }
       }
@@ -359,12 +373,13 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
     title: `Configure Dask cluster`,
     body: (
       <ClusterConfig
-        cluster_type={DEFAULT_CLUSTER_TYPE}
+        cluster_type={cluster_type}
         kernel={{
           name: kernelspecs.default,
           display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name,
           python_exec_path: kernelspecs.kernelspecs[kernelspecs.default].spec.argv[0]
         }}
+        user_info={user_info}
         min_workers={DEFAULT_MIN_WORKERS}
         max_workers={DEFAULT_MAX_WORKERS}
         worker_cores={DEFAULT_WORKER_CORES}

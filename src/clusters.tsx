@@ -443,8 +443,17 @@ export class DaskClusterManager extends Widget {
       },
       this._serverSettings
     );
-    const cluster_config = await showClusterConfigDialog(await kernelspecs_response.json());
+    const kernelspecs = await kernelspecs_response.json();
+    const user_info_response = await ServerConnection.makeRequest(
+      `${this._serverSettings.baseUrl}api/me`,
+      { method: 'GET' },
+      this._serverSettings
+    );
+    const user_info = await user_info_response.json();
+
+    const cluster_config = await showClusterConfigDialog(kernelspecs, user_info);
     if (cluster_config === null) { return };
+
     this._registry.notifyCommandChanged(this._launchClusterId);
     const response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}dask/clusters`,
