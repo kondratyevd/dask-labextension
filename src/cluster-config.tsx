@@ -4,7 +4,9 @@ import * as React from 'react';
 
 // const DEFAULT_CLUSTER_TYPE = "dask-gateway-k8s-slurm";
 const DEFAULT_MIN_WORKERS = 1;
-const DEFAULT_MAX_WORKERS = 2;
+const DEFAULT_MAX_WORKERS = 1;
+const MIN_POSSIBLE_WORKERS = 0;
+const MAX_POSSIBLE_WORKERS = 1000;
 const DEFAULT_WORKER_CORES = 1;
 const DEFAULT_WORKER_MEMORY = 4;
 
@@ -119,35 +121,65 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   onMinimumChanged(event: React.ChangeEvent): void {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    const minimum = Math.max(0, value);
-    const maximum = Math.max(this.state.max_workers, minimum);
-    this.setState({
-      min_workers: minimum,
-      max_workers: maximum
-    });
+    const inputVal = (event.target as HTMLInputElement).value;
+    const value = parseInt(inputVal, 10);
+    if (isNaN(value)) {
+      this.setState({
+        min_workers: DEFAULT_MIN_WORKERS
+      });
+    } else {
+      const minimum = Math.min(Math.max(MIN_POSSIBLE_WORKERS, value), MAX_POSSIBLE_WORKERS);
+      const maximum = Math.min(Math.max(this.state.max_workers, minimum), MAX_POSSIBLE_WORKERS);
+      this.setState({
+        min_workers: minimum,
+        max_workers: maximum
+      });
+    }
   }
-
+  
   onMaximumChanged(event: React.ChangeEvent): void {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    const maximum = Math.max(0, value);
-    const minimum = Math.min(this.state.min_workers, maximum);
-    this.setState({
-      min_workers: minimum,
-      max_workers: maximum
-    });
+    const inputVal = (event.target as HTMLInputElement).value;
+    const value = parseInt(inputVal, 10);
+    if (isNaN(value)) {
+      this.setState({
+        max_workers: DEFAULT_MAX_WORKERS
+      });
+    } else {
+      const maximum = Math.min(Math.max(MIN_POSSIBLE_WORKERS, value),MAX_POSSIBLE_WORKERS);
+      const minimum = Math.min(this.state.min_workers, maximum);
+      this.setState({
+        min_workers: minimum,
+        max_workers: maximum
+      });
+    }
   }
 
   onWorkerCoresChanged(event: React.ChangeEvent<{ value: unknown }>): void {
-    this.setState({
-      worker_cores: parseInt((event.target as HTMLInputElement).value, 10)
-    });
-  }
+    const inputVal = (event.target as HTMLInputElement).value;
+    const value = parseInt(inputVal, 10);
+    if (isNaN(value) || value < 1) {
+      this.setState({
+        worker_cores: DEFAULT_WORKER_CORES
+      });
+    } else {
+      this.setState({
+        worker_cores: value
+      });
+    }
+  }  
 
   onWorkerMemoryChanged(event: React.ChangeEvent<{ value: unknown }>): void {
-    this.setState({
-      worker_memory: parseInt((event.target as HTMLInputElement).value, 10)
-    });
+    const inputVal = (event.target as HTMLInputElement).value;
+    const value = parseFloat(inputVal);
+    if (isNaN(value) || value < 0) {
+      this.setState({
+        worker_memory: DEFAULT_WORKER_MEMORY
+      });
+    } else {
+      this.setState({
+        worker_memory: value
+      });
+    }
   }
 
   /**
@@ -292,7 +324,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               value={worker_memory}
               min="1"
               max="16"
-              step="1"
+              step="0.1"
               onChange={evt => {
                 this.onWorkerMemoryChanged(evt);
               }}
