@@ -277,7 +277,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               max="32"
               step="1"
               onChange={evt => {
-                this.onMinimumChanged(evt);
+                this.onWorkerCoresChanged(evt);
               }}
             />
           </div>
@@ -294,7 +294,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               max="16"
               step="1"
               onChange={evt => {
-                this.onMinimumChanged(evt);
+                this.onWorkerMemoryChanged(evt);
               }}
             />
           </div>
