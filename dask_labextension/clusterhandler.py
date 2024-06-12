@@ -77,7 +77,7 @@ class DaskClusterHandler(APIHandler):
         new_model = json.loads(self.request.body)
         try:
             if new_model.get("adapt") is not None:
-                cluster_model = manager.adapt_cluster(
+                cluster_model = await manager.adapt_cluster(
                     cluster_id,
                     new_model["adapt"]["minimum"],
                     new_model["adapt"]["maximum"],

@@ -2,9 +2,13 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 import * as React from 'react';
 
-const DEFAULT_CLUSTER_TYPE = "local";
+// const DEFAULT_CLUSTER_TYPE = "dask-gateway-k8s-slurm";
 const DEFAULT_MIN_WORKERS = 1;
-const DEFAULT_MAX_WORKERS = 2;
+const DEFAULT_MAX_WORKERS = 1;
+const MIN_POSSIBLE_WORKERS = 0;
+const MAX_POSSIBLE_WORKERS = 1000;
+const DEFAULT_WORKER_CORES = 1;
+const DEFAULT_WORKER_MEMORY = 4;
 
 interface KernelSpecs {
   default: string;
@@ -26,24 +30,34 @@ interface Kernel {
   python_exec_path: string;
 }
 
+interface UserInfo {
+  identity: {
+    username: string
+  }
+}
 
 namespace ClusterConfig {
   export interface IState {
     cluster_type: string;
     kernel: Kernel;
+    user_info: UserInfo;
     min_workers: number;
     max_workers: number;
+    worker_cores: number;
+    worker_memory: number;
   }
   export interface IProps {
     cluster_type: string;
     kernelspecs: KernelSpecs;
     kernel: Kernel;
+    user_info: UserInfo;
     min_workers: number;
     max_workers: number;
-    stateEscapeHatch: (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => void;
+    worker_cores: number;
+    worker_memory: number;
+    stateEscapeHatch: (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => void;
   }
 }
-
 
 export class ClusterConfig extends React.Component<ClusterConfig.IProps, ClusterConfig.IState> {
   
@@ -51,9 +65,12 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     super(props);
     const cluster_type = props.cluster_type;
     const kernel = props.kernel;
+    const user_info = props.user_info;
     const min_workers = props.min_workers;
     const max_workers = props.max_workers;
-    this.state = { cluster_type, kernel, min_workers, max_workers};
+    const worker_cores = props.worker_cores;
+    const worker_memory = props.worker_memory;
+    this.state = { cluster_type, kernel, user_info, min_workers, max_workers, worker_cores, worker_memory};
   }
 
   componentDidMount() {
@@ -61,11 +78,14 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   componentDidUpdate(): void {
-    this.props.stateEscapeHatch(this.state.cluster_type, this.state.kernel, this.state.min_workers, this.state.max_workers);
+    this.props.stateEscapeHatch(this.state.cluster_type, this.state.kernel, this.state.min_workers, this.state.max_workers, this.state.worker_cores, this.state.worker_memory);
   }
 
   resetValues(): void {
-    const cluster_type = DEFAULT_CLUSTER_TYPE;
+    let username = this.props.user_info.identity.username;
+    const cluster_type = username.includes("-cern") || username.includes("-fnal")
+    ? "dask-gateway-k8s"
+    : "dask-gateway-k8s-slurm";
     const ks = this.props.kernelspecs;
     const kernel = {
       name: ks.default,
@@ -74,8 +94,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     };
     const min_workers = DEFAULT_MIN_WORKERS;
     const max_workers = DEFAULT_MAX_WORKERS;
-    this.setState({ cluster_type, kernel, min_workers, max_workers });
-    this.props.stateEscapeHatch(cluster_type, kernel, min_workers, max_workers);
+    const worker_cores = DEFAULT_WORKER_CORES;
+    const worker_memory = DEFAULT_WORKER_MEMORY;
+    this.setState({ cluster_type, kernel, min_workers, max_workers, worker_cores, worker_memory });
+    this.props.stateEscapeHatch(cluster_type, kernel, min_workers, max_workers, worker_cores, worker_memory);
   }
 
   onClusterTypeChanged(event: React.ChangeEvent<{ value: unknown }>): void {
@@ -85,13 +107,13 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   onKernelChanged(event: React.ChangeEvent<{ value: unknown }>): void {
-    if (this.state.cluster_type == "local") { return }
+    // if (this.state.cluster_type == "local") { return }
     const kernel_name = event.target.value as string;
     const ks = this.props.kernelspecs;
     const kernel = {
       name: kernel_name,
       display_name: ks.kernelspecs[kernel_name].spec.display_name,
-      python_exec_path: ks.kernelspecs[kernel_name].spec.argv[0]
+      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
     };
     this.setState({
       kernel: kernel
@@ -99,23 +121,65 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   }
 
   onMinimumChanged(event: React.ChangeEvent): void {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    const minimum = Math.max(0, value);
-    const maximum = Math.max(this.state.max_workers, minimum);
-    this.setState({
-      min_workers: minimum,
-      max_workers: maximum
-    });
+    const inputVal = (event.target as HTMLInputElement).value;
+    const value = parseInt(inputVal, 10);
+    if (isNaN(value)) {
+      this.setState({
+        min_workers: DEFAULT_MIN_WORKERS
+      });
+    } else {
+      const minimum = Math.min(Math.max(MIN_POSSIBLE_WORKERS, value), MAX_POSSIBLE_WORKERS);
+      const maximum = Math.min(Math.max(this.state.max_workers, minimum), MAX_POSSIBLE_WORKERS);
+      this.setState({
+        min_workers: minimum,
+        max_workers: maximum
+      });
+    }
+  }
+  
+  onMaximumChanged(event: React.ChangeEvent): void {
+    const inputVal = (event.target as HTMLInputElement).value;
+    const value = parseInt(inputVal, 10);
+    if (isNaN(value)) {
+      this.setState({
+        max_workers: DEFAULT_MAX_WORKERS
+      });
+    } else {
+      const maximum = Math.min(Math.max(MIN_POSSIBLE_WORKERS, value),MAX_POSSIBLE_WORKERS);
+      const minimum = Math.min(this.state.min_workers, maximum);
+      this.setState({
+        min_workers: minimum,
+        max_workers: maximum
+      });
+    }
   }
 
-  onMaximumChanged(event: React.ChangeEvent): void {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    const maximum = Math.max(0, value);
-    const minimum = Math.min(this.state.min_workers, maximum);
-    this.setState({
-      min_workers: minimum,
-      max_workers: maximum
-    });
+  onWorkerCoresChanged(event: React.ChangeEvent<{ value: unknown }>): void {
+    const inputVal = (event.target as HTMLInputElement).value;
+    const value = parseInt(inputVal, 10);
+    if (isNaN(value) || value < 1) {
+      this.setState({
+        worker_cores: DEFAULT_WORKER_CORES
+      });
+    } else {
+      this.setState({
+        worker_cores: value
+      });
+    }
+  }  
+
+  onWorkerMemoryChanged(event: React.ChangeEvent<{ value: unknown }>): void {
+    const inputVal = (event.target as HTMLInputElement).value;
+    const value = parseFloat(inputVal);
+    if (isNaN(value) || value < 0) {
+      this.setState({
+        worker_memory: DEFAULT_WORKER_MEMORY
+      });
+    } else {
+      this.setState({
+        worker_memory: value
+      });
+    }
   }
 
   /**
@@ -125,6 +189,8 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const cluster_type = this.state.cluster_type;
     const min_workers = this.state.min_workers;
     const max_workers = this.state.max_workers;
+    const worker_cores = this.state.worker_cores;
+    const worker_memory = this.state.worker_memory;
     const ks = this.props.kernelspecs;
     const disabledClass = 'dask-mod-disabled';
     return (
@@ -137,13 +203,16 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               <input
                 type="radio"
                 name="clusterType"
-                value="local"
-                checked={cluster_type=="local"}
+                value="dask-gateway-k8s-slurm"
+                checked={cluster_type=="dask-gateway-k8s-slurm"}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
                 }}
               />
-              Local cluster
+              DaskGateway + SLURM 
+              <div style={{fontSize: 'smaller', fontStyle: 'italic', marginLeft: '10px'}}>
+                (Hammer cluster: <span style={{color: 'red'}}>Purdue users only</span>)
+              </div>
             </label>
           </div>
           <div className="dask-ClusterConfigSection-item">
@@ -151,27 +220,28 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               <input
                 type="radio"
                 name="clusterType"
-                value="slurm"
-                checked={cluster_type=="slurm"}
+                value="dask-gateway-k8s"
+                checked={cluster_type=="dask-gateway-k8s"}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
                 }}
               />
-              SLURM cluster
+              DaskGateway + Kubernetes 
+              <div style={{fontSize: 'smaller', fontStyle: 'italic', marginLeft: '10px'}}>
+                (Geddes cluster: <span style={{color: 'green'}}>All users</span>)
+              </div>
             </label>
-            {(cluster_type=="slurm") && (
-              <div className="dask-ClusterConfigSection-item">
-                <span
-                  className={`dask-ClusterConfigSection-label ${
-                    cluster_type!=="slurm" ? disabledClass : ''
-                  }`}
-                >
-                </span>
-                <select
+          </div>
+        </div>
+      </div>
+      <div>
+        <span className="dask-ScalingHeader">Kernel / Conda environment</span>
+        <div className="dask-ClusterConfigSection">
+          <select
                   className={`dask-ClusterConfigSelect ${
-                    cluster_type!=="slurm" ? disabledClass : ''
+                    cluster_type=="local" ? disabledClass : ''
                   }`}
-                  disabled={cluster_type!=="slurm"}
+                  disabled={cluster_type=="local"}
                   onChange={evt => {
                     this.onKernelChanged(evt);
                   }}
@@ -181,10 +251,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
                       return (<option value={kernel.name} selected={kernel.name === ks.default}> {kernel.spec.display_name} </option>)
                     }
                   })}
-                </select>
-              </div>
-            )}
-          </div>
+          </select>
         </div>
       </div>
       <div>
@@ -199,6 +266,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               disabled={false}
               type="number"
               value={min_workers}
+              min="0"
               step="1"
               onChange={evt => {
                 this.onMinimumChanged(evt);
@@ -216,9 +284,49 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               disabled={false}
               type="number"
               value={max_workers}
+              min="0"
               step="1"
               onChange={evt => {
                 this.onMaximumChanged(evt);
+              }}
+            />
+          </div>
+        </div>
+      </div>
+      <div>
+        <span className="dask-ScalingHeader">Worker resources</span>
+        <div className="dask-ClusterConfigSection">
+          <div className="dask-ScalingSection-item">
+            <span className={"dask-ScalingSection-label"}>
+              Cores per worker
+            </span>
+            <input
+              className="dask-ScalingInput"
+              disabled={false}
+              type="number"
+              value={worker_cores}
+              min="1"
+              max="32"
+              step="1"
+              onChange={evt => {
+                this.onWorkerCoresChanged(evt);
+              }}
+            />
+          </div>
+          <div className="dask-ScalingSection-item">
+            <span className={"dask-ScalingSection-label"}>
+              Worker memory [GB]
+            </span>
+            <input
+              className="dask-ScalingInput"
+              disabled={false}
+              type="number"
+              value={worker_memory}
+              min="1"
+              max="16"
+              step="0.1"
+              onChange={evt => {
+                this.onWorkerMemoryChanged(evt);
               }}
             />
           </div>
@@ -236,10 +344,16 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
  *   If they pressed the cancel button, it resolves with the original model.
  */
 
-export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|null> {
-  let new_config = {};
-  const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number) => {
-    if (cluster_type=="slurm") {
+export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: UserInfo): Promise<{}|null> {
+  let new_config = {}
+
+  let username = user_info.identity.username;
+  const cluster_type = username.includes("-cern") || username.includes("-fnal")
+    ? "dask-gateway-k8s"
+    : "dask-gateway-k8s-slurm";
+
+  const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => {
+    if (cluster_type=="dask-gateway-k8s-slurm") {
       new_config = {
         default: {
           adapt: {
@@ -248,39 +362,41 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
             }
         },
         factory: {
-          class: "PurdueSLURMCluster",
-          module: "purdue_slurm",
+          class: "GatewayCluster",
+          module: "dask_gateway",
           args: [],
           kwargs: {
-            account: "cms",
-            cores: 1,
-            memory: "2G",
-            job_extra_directives: [
-              "--qos=normal",
-              "-o /tmp/dask_job.%j.%N.out",
-              "-e /tmp/dask_job.%j.%N.error"
-            ],
-            kernel_name: kernel.name,
-            kernel_display_name: kernel.display_name,
-            python: kernel.python_exec_path
+            address: "http://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
+            proxy_address: "api-dask-gateway-k8s-slurm.cms.geddes.rcac.purdue.edu:8000",
+            public_address: "https://dask-gateway-k8s-slurm.geddes.rcac.purdue.edu",
+            conda_env: kernel.python_exec_path.split("/bin/")[0],
+            worker_cores: worker_cores,
+            worker_memory: worker_memory
           }
         }
-      };
-    } else if (cluster_type=="local") {
+      }
+    } else if (cluster_type=="dask-gateway-k8s") {
       new_config = {
         default: {
           adapt: {
-            minimum: min_workers,
-            maximum: max_workers
-        }
+              minimum: min_workers,
+              maximum: max_workers
+            }
         },
         factory: {
-          class: "LocalCluster",
-          module: "dask.distributed",
+          class: "GatewayCluster",
+          module: "dask_gateway",
           args: [],
-          kwargs: {}
+          kwargs: {
+            address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu/",
+            proxy_address: "traefik-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8786",
+            public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
+            conda_env: kernel.python_exec_path.split("/bin/")[0],
+            worker_cores: worker_cores,
+            worker_memory: worker_memory
+          }
         }
-      };
+      }
     } else {
       new_config = {}
     }
@@ -289,14 +405,17 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs): Promise<{}|nu
     title: `Configure Dask cluster`,
     body: (
       <ClusterConfig
-        cluster_type={DEFAULT_CLUSTER_TYPE}
+        cluster_type={cluster_type}
         kernel={{
           name: kernelspecs.default,
           display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name,
           python_exec_path: kernelspecs.kernelspecs[kernelspecs.default].spec.argv[0]
         }}
+        user_info={user_info}
         min_workers={DEFAULT_MIN_WORKERS}
         max_workers={DEFAULT_MAX_WORKERS}
+        worker_cores={DEFAULT_WORKER_CORES}
+        worker_memory={DEFAULT_WORKER_MEMORY}
         kernelspecs={kernelspecs}
         stateEscapeHatch={escapeHatch}
       />

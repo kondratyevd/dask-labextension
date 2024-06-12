@@ -4,7 +4,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 import os
-import yaml
 import importlib
 from inspect import isawaitable
 from typing import Any, Dict, List, Union
@@ -12,7 +11,7 @@ from uuid import uuid4
 
 import dask
 from dask.utils import format_bytes
-from dask.distributed import Adaptive
+# from dask.distributed import Adaptive
 from tornado.ioloop import IOLoop
 from tornado.concurrent import Future
 
@@ -24,11 +23,13 @@ ClusterModel = Dict[str, Any]
 Cluster = Any
 
 
+class Adaptive:
+    def __init__(self,  minimum: int, maximum: int):
+        self.minimum = minimum
+        self.maximum = maximum
+
 async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
-    # home_dir = os.environ.get("HOME", "./")
-    # with open(f"{home_dir}/.config/dask/labextension.yaml", "r") as file:
-    #     new_config = yaml.safe_load(file)
-    # dask.config.global_config["labextension"] = new_config["labextension"]
+    env_override = dask.config.get("labextension.env_override", {})
     if custom_config:
         dask.config.global_config["labextension"] = custom_config
 
@@ -37,6 +38,10 @@ async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
 
     kwargs = dask.config.get("labextension.factory.kwargs")
     kwargs = {key.replace("-", "_"): entry for key, entry in kwargs.items()}
+
+    kwargs["env"] = dict(os.environ)
+    for k,v in env_override.items():
+        kwargs["env"][k] = v
 
     cluster = await Cluster(
         *dask.config.get("labextension.factory.args"), **kwargs, asynchronous=True
@@ -48,7 +53,9 @@ async def make_cluster(configuration: dict, custom_config: dict) -> Cluster:
 
     adaptive = None
     if configuration.get("adapt"):
-        adaptive = cluster.adapt(**configuration.get("adapt"))
+        adaptive = Adaptive(**configuration.get("adapt"))
+        await cluster.adapt(**configuration.get("adapt"))
+        # adaptive = cluster.adapt(**configuration.get("adapt"))
     elif configuration.get("workers") is not None:
         t = cluster.scale(configuration.get("workers"))
         if isawaitable(t):
@@ -197,7 +204,7 @@ class DaskClusterManager:
             await t
         return make_cluster_model(cluster_id, name, cluster, adaptive=None)
 
-    def adapt_cluster(
+    async def adapt_cluster(
         self, cluster_id: str, minimum: int, maximum: int
     ) -> Union[ClusterModel, None]:
         cluster = self._clusters.get(cluster_id)
@@ -218,7 +225,9 @@ class DaskClusterManager:
             return model
 
         # Otherwise, rescale the model.
-        adaptive = cluster.adapt(minimum=minimum, maximum=maximum)
+        adaptive = Adaptive(minimum=minimum, maximum=maximum)
+        await cluster.adapt(minimum=minimum, maximum=maximum)
+        # adaptive = cluster.adapt(minimum=minimum, maximum=maximum)
         self._adaptives[cluster_id] = adaptive
         return make_cluster_model(cluster_id, name, cluster, adaptive)
 
@@ -281,6 +290,7 @@ def make_cluster_model(
         info = cluster.scheduler_info
     except AttributeError:
         info = cluster.scheduler.identity()
+
     try:
         cores = sum(d["nthreads"] for d in info["workers"].values())
     except KeyError:  # dask.__version__ < 2.0
