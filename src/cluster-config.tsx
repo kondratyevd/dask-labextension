@@ -84,7 +84,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   resetValues(): void {
     let username = this.props.user_info.identity.username;
     const cluster_type = username.includes("-cern") || username.includes("-fnal")
-    ? "dask-gateway-k8s"
+    ? "dask-gateway-hats"
     : "dask-gateway-k8s-slurm";
     const ks = this.props.kernelspecs;
     const kernel = {
@@ -232,6 +232,20 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               </div>
             </label>
           </div>
+          <div className="dask-ClusterConfigSection-item">
+            <label>
+              <input
+                type="radio"
+                name="clusterType"
+                value="dask-gateway-hats"
+                checked={cluster_type=="dask-gateway-hats"}
+                onChange={evt => {
+                  this.onClusterTypeChanged(evt);
+                }}
+              />
+              DaskGateway for LPC HATS 2024
+            </label>
+          </div>
         </div>
       </div>
       <div>
@@ -349,7 +363,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
 
   let username = user_info.identity.username;
   const cluster_type = username.includes("-cern") || username.includes("-fnal")
-    ? "dask-gateway-k8s"
+    ? "dask-gateway-hats"
     : "dask-gateway-k8s-slurm";
 
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => {
@@ -391,6 +405,28 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
             address: "http://dask-gateway-k8s.geddes.rcac.purdue.edu/",
             proxy_address: "traefik-dask-gateway-k8s.cms.geddes.rcac.purdue.edu:8786",
             public_address: "https://dask-gateway-k8s.geddes.rcac.purdue.edu",
+            conda_env: kernel.python_exec_path.split("/bin/")[0],
+            worker_cores: worker_cores,
+            worker_memory: worker_memory
+          }
+        }
+      }
+    } else if (cluster_type=="dask-gateway-hats") {
+      new_config = {
+        default: {
+          adapt: {
+              minimum: min_workers,
+              maximum: max_workers
+            }
+        },
+        factory: {
+          class: "GatewayCluster",
+          module: "dask_gateway",
+          args: [],
+          kwargs: {
+            address: "http://dask-gateway-hats.geddes.rcac.purdue.edu/",
+            proxy_address: "traefik-dask-gateway-hats.cms.geddes.rcac.purdue.edu:8786",
+            public_address: "https://dask-gateway-hats.geddes.rcac.purdue.edu",
             conda_env: kernel.python_exec_path.split("/bin/")[0],
             worker_cores: worker_cores,
             worker_memory: worker_memory
