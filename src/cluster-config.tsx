@@ -84,7 +84,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   resetValues(): void {
     let username = this.props.user_info.identity.username;
     const cluster_type = username.includes("-cern") || username.includes("-fnal")
-    ? "dask-gateway-hats"
+    ? "dask-gateway-k8s"
     : "dask-gateway-k8s-slurm";
     const ks = this.props.kernelspecs;
     const kernel = {
@@ -113,7 +113,7 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const kernel = {
       name: kernel_name,
       display_name: ks.kernelspecs[kernel_name].spec.display_name,
-      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
+      python_exec_path: ks.kernelspecs[kernel_name].spec.argv[0]
     };
     this.setState({
       kernel: kernel
@@ -232,20 +232,20 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
               </div>
             </label>
           </div>
-          <div className="dask-ClusterConfigSection-item">
+          {/* <div className="dask-ClusterConfigSection-item">
             <label>
               <input
                 type="radio"
                 name="clusterType"
-                value="dask-gateway-hats"
-                checked={cluster_type=="dask-gateway-hats"}
+                value="dask-gateway-k8s"
+                checked={cluster_type=="dask-gateway-k8s"}
                 onChange={evt => {
                   this.onClusterTypeChanged(evt);
                 }}
               />
               DaskGateway for LPC HATS 2024
             </label>
-          </div>
+          </div> */}
         </div>
       </div>
       <div>
@@ -256,15 +256,18 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
                     cluster_type=="local" ? disabledClass : ''
                   }`}
                   disabled={cluster_type=="local"}
+                  value={this.state.kernel.name}
                   onChange={evt => {
                     this.onKernelChanged(evt);
                   }}
                 >
-                  {Object.values(ks.kernelspecs).map(kernel => {
-                    if (kernel.spec.language === "python") { 
-                      return (<option value={kernel.name} selected={kernel.name === ks.default}> {kernel.spec.display_name} </option>)
-                    }
-                  })}
+                  {Object.values(ks.kernelspecs)
+                    .filter(kernel => kernel.spec.language === "python")
+                    .map(kernel => (
+                      <option key={kernel.name} value={kernel.name}>
+                        {kernel.spec.display_name}
+                      </option>
+                    ))}
           </select>
         </div>
       </div>
@@ -363,7 +366,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
 
   let username = user_info.identity.username;
   const cluster_type = username.includes("-cern") || username.includes("-fnal")
-    ? "dask-gateway-hats"
+    ? "dask-gateway-k8s"
     : "dask-gateway-k8s-slurm";
 
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => {
@@ -411,28 +414,28 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
           }
         }
       }
-    } else if (cluster_type=="dask-gateway-hats") {
-      new_config = {
-        default: {
-          adapt: {
-              minimum: min_workers,
-              maximum: max_workers
-            }
-        },
-        factory: {
-          class: "GatewayCluster",
-          module: "dask_gateway",
-          args: [],
-          kwargs: {
-            address: "http://dask-gateway-hats.geddes.rcac.purdue.edu/",
-            proxy_address: "traefik-dask-gateway-hats.cms.geddes.rcac.purdue.edu:8786",
-            public_address: "https://dask-gateway-hats.geddes.rcac.purdue.edu",
-            conda_env: kernel.python_exec_path.split("/bin/")[0],
-            worker_cores: worker_cores,
-            worker_memory: worker_memory
-          }
-        }
-      }
+    // } else if (cluster_type=="dask-gateway-hats") {
+    //   new_config = {
+    //     default: {
+    //       adapt: {
+    //           minimum: min_workers,
+    //           maximum: max_workers
+    //         }
+    //     },
+    //     factory: {
+    //       class: "GatewayCluster",
+    //       module: "dask_gateway",
+    //       args: [],
+    //       kwargs: {
+    //         address: "http://dask-gateway-hats.geddes.rcac.purdue.edu/",
+    //         proxy_address: "traefik-dask-gateway-hats.cms.geddes.rcac.purdue.edu:8786",
+    //         public_address: "https://dask-gateway-hats.geddes.rcac.purdue.edu",
+    //         conda_env: kernel.python_exec_path.split("/bin/")[0],
+    //         worker_cores: worker_cores,
+    //         worker_memory: worker_memory
+    //       }
+    //     }
+    //   }
     } else {
       new_config = {}
     }
