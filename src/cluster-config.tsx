@@ -370,6 +370,8 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
     : "dask-gateway-k8s-slurm";
 
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => {
+    console.log("Exec path:")
+    console.log(kernel.python_exec_path)
     if (cluster_type=="dask-gateway-k8s-slurm") {
       new_config = {
         default: {
