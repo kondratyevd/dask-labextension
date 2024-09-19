@@ -2,7 +2,6 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 import * as React from 'react';
 
-// const DEFAULT_CLUSTER_TYPE = "dask-gateway-k8s-slurm";
 const DEFAULT_MIN_WORKERS = 1;
 const DEFAULT_MAX_WORKERS = 1;
 const MIN_POSSIBLE_WORKERS = 0;
@@ -20,8 +19,12 @@ interface KernelSpecs {
         display_name: string;
         language: string;
       };
-    }
-  }
+      metadata?: {
+        conda_env_path?: string;
+        [key: string]: any;
+      };
+    };
+  };
 }
 
 interface Kernel {
@@ -33,6 +36,21 @@ interface Kernel {
 interface UserInfo {
   identity: {
     username: string
+  }
+}
+
+function getPythonExecPath(kernelspec: any): string {
+  const { argv } = kernelspec.spec;
+  const metadata = kernelspec.spec.metadata || {};
+
+  // console.log("getPythonExecPath - kernelspec:", kernelspec);
+  // console.log("getPythonExecPath - kernelspec.spec:", kernelspec.spec);
+  // console.log("getPythonExecPath - kernelspec.spec.metadata:", metadata);
+
+  if (metadata.conda_env_path) {
+    return `${metadata.conda_env_path}/bin/python`;
+  } else {
+    return argv[0];
   }
 }
 
@@ -87,10 +105,12 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     ? "dask-gateway-k8s"
     : "dask-gateway-k8s-slurm";
     const ks = this.props.kernelspecs;
+    const defaultKernel = ks.kernelspecs[ks.default];
+
     const kernel = {
       name: ks.default,
-      display_name: ks.kernelspecs[ks.default].spec.display_name,
-      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
+      display_name: defaultKernel.spec.display_name,
+      python_exec_path: getPythonExecPath(defaultKernel)
     };
     const min_workers = DEFAULT_MIN_WORKERS;
     const max_workers = DEFAULT_MAX_WORKERS;
@@ -109,11 +129,12 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   onKernelChanged(event: React.ChangeEvent<{ value: unknown }>): void {
     // if (this.state.cluster_type == "local") { return }
     const kernel_name = event.target.value as string;
-    const ks = this.props.kernelspecs;
+    const kernelspec = this.props.kernelspecs.kernelspecs[kernel_name];
+
     const kernel = {
       name: kernel_name,
-      display_name: ks.kernelspecs[kernel_name].spec.display_name,
-      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
+      display_name: kernelspec.spec.display_name,
+      python_exec_path: getPythonExecPath(kernelspec)
     };
     this.setState({
       kernel: kernel
@@ -242,15 +263,18 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
                     cluster_type=="local" ? disabledClass : ''
                   }`}
                   disabled={cluster_type=="local"}
+                  value={this.state.kernel.name}
                   onChange={evt => {
                     this.onKernelChanged(evt);
                   }}
                 >
-                  {Object.values(ks.kernelspecs).map(kernel => {
-                    if (kernel.spec.language === "python") { 
-                      return (<option value={kernel.name} selected={kernel.name === ks.default}> {kernel.spec.display_name} </option>)
-                    }
-                  })}
+                  {Object.values(ks.kernelspecs)
+                    .filter(kernel => kernel.spec.language === "python")
+                    .map(kernel => (
+                      <option key={kernel.name} value={kernel.name}>
+                        {kernel.spec.display_name}
+                      </option>
+                    ))}
           </select>
         </div>
       </div>
@@ -409,7 +433,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
         kernel={{
           name: kernelspecs.default,
           display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name,
-          python_exec_path: kernelspecs.kernelspecs[kernelspecs.default].spec.argv[0]
+          python_exec_path: getPythonExecPath(kernelspecs.kernelspecs[kernelspecs.default])
         }}
         user_info={user_info}
         min_workers={DEFAULT_MIN_WORKERS}
