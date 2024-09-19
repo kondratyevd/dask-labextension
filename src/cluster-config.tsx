@@ -42,12 +42,11 @@ interface UserInfo {
 
 function getPythonExecPath(kernelspec: any): string {
   const { argv } = kernelspec.spec;
-  const metadata = kernelspec.metadata || {};
+  const metadata = kernelspec.spec.metadata || {};
 
   console.log("getPythonExecPath - kernelspec:", kernelspec);
   console.log("getPythonExecPath - kernelspec.spec:", kernelspec.spec);
   console.log("getPythonExecPath - kernelspec.metadata:", metadata);
-  console.log("kernelspec.resource_dir:", kernelspec.resource_dir);
 
   if (metadata.conda_env_path) {
     return `${metadata.conda_env_path}/bin/python`;
