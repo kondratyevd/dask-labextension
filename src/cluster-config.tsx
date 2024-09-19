@@ -20,8 +20,12 @@ interface KernelSpecs {
         display_name: string;
         language: string;
       };
-    }
-  }
+      metadata?: {
+        conda_env_path?: string;
+        [key: string]: any;
+      };
+    };
+  };
 }
 
 interface Kernel {
@@ -33,6 +37,17 @@ interface Kernel {
 interface UserInfo {
   identity: {
     username: string
+  }
+}
+
+function getPythonExecPath(kernelspec: any): string {
+  const { argv } = kernelspec.spec;
+  const metadata = kernelspec.metadata || {};
+  if (metadata.conda_env_path) {
+    return `${metadata.conda_env_path}/bin/python`;
+  } else {
+    // Fallback to argv[0], which might be 'python' or a full path
+    return argv[0];
   }
 }
 
@@ -87,10 +102,11 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     ? "dask-gateway-k8s"
     : "dask-gateway-k8s-slurm";
     const ks = this.props.kernelspecs;
+    const defaultKernel = ks.kernelspecs[ks.default];
     const kernel = {
       name: ks.default,
-      display_name: ks.kernelspecs[ks.default].spec.display_name,
-      python_exec_path: ks.kernelspecs[ks.default].spec.argv[0]
+      display_name: defaultKernel.spec.display_name,
+      python_exec_path: getPythonExecPath(defaultKernel)
     };
     const min_workers = DEFAULT_MIN_WORKERS;
     const max_workers = DEFAULT_MAX_WORKERS;
@@ -109,11 +125,11 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
   onKernelChanged(event: React.ChangeEvent<{ value: unknown }>): void {
     // if (this.state.cluster_type == "local") { return }
     const kernel_name = event.target.value as string;
-    const ks = this.props.kernelspecs;
+    const kernelspec = this.props.kernelspecs.kernelspecs[kernel_name];
     const kernel = {
       name: kernel_name,
-      display_name: ks.kernelspecs[kernel_name].spec.display_name,
-      python_exec_path: ks.kernelspecs[kernel_name].spec.argv[0]
+      display_name: kernelspec.spec.display_name,
+      python_exec_path: getPythonExecPath(kernelspec)
     };
     this.setState({
       kernel: kernel
@@ -372,6 +388,8 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => {
     console.log("Exec path:")
     console.log(kernel.python_exec_path)
+    console.log(kernel)
+    console.log("-")
     if (cluster_type=="dask-gateway-k8s-slurm") {
       new_config = {
         default: {
@@ -450,7 +468,7 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
         kernel={{
           name: kernelspecs.default,
           display_name: kernelspecs.kernelspecs[kernelspecs.default].spec.display_name,
-          python_exec_path: kernelspecs.kernelspecs[kernelspecs.default].spec.argv[0]
+          python_exec_path: getPythonExecPath(kernelspecs.kernelspecs[kernelspecs.default])
         }}
         user_info={user_info}
         min_workers={DEFAULT_MIN_WORKERS}
