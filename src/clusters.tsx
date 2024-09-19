@@ -438,6 +438,19 @@ export class DaskClusterManager extends Widget {
   private async _launchCluster(): Promise<IClusterModel> {
     console.log("Dask Labextension - _launchCluster() called")
     this._isReady = false;
+
+    await this._updateClusterList();
+
+    if (this._clusters.length >= 1) {
+      void showErrorMessage(
+        'Cluster Start Error',
+        'You already have a running Dask Gateway cluster. Please shut it down before creating a new one.'
+      );
+      this._isReady = true;
+      this._registry.notifyCommandChanged(this._launchClusterId);
+      throw new Error('User already has a running cluster.');
+    }
+
     const kernelspecs_response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}api/kernelspecs`,
       { 
