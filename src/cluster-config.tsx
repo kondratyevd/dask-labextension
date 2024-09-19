@@ -43,6 +43,12 @@ interface UserInfo {
 function getPythonExecPath(kernelspec: any): string {
   const { argv } = kernelspec.spec;
   const metadata = kernelspec.metadata || {};
+
+  console.log("getPythonExecPath - kernelspec:", kernelspec);
+  console.log("getPythonExecPath - kernelspec.spec:", kernelspec.spec);
+  console.log("getPythonExecPath - kernelspec.metadata:", metadata);
+  console.log("kernelspec.resource_dir:", kernelspec.resource_dir);
+
   if (metadata.conda_env_path) {
     return `${metadata.conda_env_path}/bin/python`;
   } else {
@@ -103,6 +109,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     : "dask-gateway-k8s-slurm";
     const ks = this.props.kernelspecs;
     const defaultKernel = ks.kernelspecs[ks.default];
+
+    console.log("resetValues - defaultKernel:", defaultKernel);
+    console.log("resetValues - defaultKernel.metadata:", defaultKernel.metadata);
+
     const kernel = {
       name: ks.default,
       display_name: defaultKernel.spec.display_name,
@@ -126,6 +136,10 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     // if (this.state.cluster_type == "local") { return }
     const kernel_name = event.target.value as string;
     const kernelspec = this.props.kernelspecs.kernelspecs[kernel_name];
+
+    console.log("onKernelChanged - kernel_name:", kernel_name);
+    console.log("onKernelChanged - kernelspec:", kernelspec);
+
     const kernel = {
       name: kernel_name,
       display_name: kernelspec.spec.display_name,
@@ -386,10 +400,6 @@ export function showClusterConfigDialog(kernelspecs: KernelSpecs, user_info: Use
     : "dask-gateway-k8s-slurm";
 
   const escapeHatch = (cluster_type: string, kernel: Kernel, min_workers: number, max_workers: number, worker_cores: number, worker_memory: number) => {
-    console.log("Exec path:")
-    console.log(kernel.python_exec_path)
-    console.log(kernel)
-    console.log("-")
     if (cluster_type=="dask-gateway-k8s-slurm") {
       new_config = {
         default: {
