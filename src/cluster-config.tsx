@@ -46,7 +46,7 @@ function getPythonExecPath(kernelspec: any): string {
 
   console.log("getPythonExecPath - kernelspec:", kernelspec);
   console.log("getPythonExecPath - kernelspec.spec:", kernelspec.spec);
-  console.log("getPythonExecPath - kernelspec.metadata:", metadata);
+  console.log("getPythonExecPath - kernelspec.spec.metadata:", metadata);
 
   if (metadata.conda_env_path) {
     return `${metadata.conda_env_path}/bin/python`;
@@ -109,9 +109,6 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     const ks = this.props.kernelspecs;
     const defaultKernel = ks.kernelspecs[ks.default];
 
-    console.log("resetValues - defaultKernel:", defaultKernel);
-    console.log("resetValues - defaultKernel.metadata:", defaultKernel.metadata);
-
     const kernel = {
       name: ks.default,
       display_name: defaultKernel.spec.display_name,
@@ -135,9 +132,6 @@ export class ClusterConfig extends React.Component<ClusterConfig.IProps, Cluster
     // if (this.state.cluster_type == "local") { return }
     const kernel_name = event.target.value as string;
     const kernelspec = this.props.kernelspecs.kernelspecs[kernel_name];
-
-    console.log("onKernelChanged - kernel_name:", kernel_name);
-    console.log("onKernelChanged - kernelspec:", kernelspec);
 
     const kernel = {
       name: kernel_name,
