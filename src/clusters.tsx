@@ -193,6 +193,7 @@ export class DaskClusterManager extends Widget {
    * Start a new cluster.
    */
   async start(): Promise<IClusterModel> {
+    console.log("Dask Labextension - start() called")
     const cluster = await this._launchCluster();
     return cluster;
   }
@@ -435,6 +436,7 @@ export class DaskClusterManager extends Widget {
    * Launch a new cluster on the server.
    */
   private async _launchCluster(): Promise<IClusterModel> {
+    console.log("Dask Labextension - _launchCluster() called")
     this._isReady = false;
     const kernelspecs_response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}api/kernelspecs`,
@@ -463,6 +465,7 @@ export class DaskClusterManager extends Widget {
       },
       this._serverSettings
     );
+    console.log("Dask Labextension - 'PUT' request sent")
     if (response.status !== 200) {
       const err = await response.json();
       void showErrorMessage('Cluster Start Error', err);
