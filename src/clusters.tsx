@@ -37,7 +37,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { CommandRegistry } from '@lumino/commands';
 
-const DEFAULT_DASHBOARD_LINK = `/proxy/8787/status`;
 
 /**
  * A refresh interval (in ms) for polling the backend cluster manager.
@@ -78,19 +77,9 @@ export class DaskClusterManager extends Widget {
       if (!cluster) {
         return;
       }
-      // const proxyUrl = URLExt.join(this._serverSettings.baseUrl, 'proxy');
-      // const proxyPrefix = new URL(proxyUrl).pathname;
-      options.setDashboardUrl(DEFAULT_DASHBOARD_LINK);
-      // if (cluster.dashboard_link.indexOf(proxyPrefix) !== -1) {
-      //   // If the dashboard link is already proxied using
-      //   // jupyter_server_proxy, don't proxy again. This
-      //   // can happen if the user has overridden the dashboard
-      //   // URL to the jupyter_server_proxy URL manually.
-      //   options.setDashboardUrl(cluster.dashboard_link);
-      // } else {
-      //   // Otherwise, use the internal proxy URL.
-      //   options.setDashboardUrl(`dask/dashboard/${cluster.id}`);
-      // }
+
+      // Not checking for proxies
+      options.setDashboardUrl(cluster.dashboard_link);
 
       const old = this._activeCluster;
       if (old && old.id === cluster.id) {
@@ -204,6 +193,7 @@ export class DaskClusterManager extends Widget {
    * Start a new cluster.
    */
   async start(): Promise<IClusterModel> {
+    console.log("Dask Labextension - start() called")
     const cluster = await this._launchCluster();
     return cluster;
   }
@@ -446,7 +436,21 @@ export class DaskClusterManager extends Widget {
    * Launch a new cluster on the server.
    */
   private async _launchCluster(): Promise<IClusterModel> {
+    console.log("Dask Labextension - _launchCluster() called")
     this._isReady = false;
+
+    await this._updateClusterList();
+
+    if (this._clusters.length >= 1) {
+      void showErrorMessage(
+        'Cluster Start Error',
+        'You already have a running Dask Gateway cluster. Please shut it down before creating a new one.'
+      );
+      this._isReady = true;
+      this._registry.notifyCommandChanged(this._launchClusterId);
+      throw new Error('User already has a running cluster.');
+    }
+
     const kernelspecs_response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}api/kernelspecs`,
       { 
@@ -454,8 +458,17 @@ export class DaskClusterManager extends Widget {
       },
       this._serverSettings
     );
-    const cluster_config = await showClusterConfigDialog(await kernelspecs_response.json());
+    const kernelspecs = await kernelspecs_response.json();
+    const user_info_response = await ServerConnection.makeRequest(
+      `${this._serverSettings.baseUrl}api/me`,
+      { method: 'GET' },
+      this._serverSettings
+    );
+    const user_info = await user_info_response.json();
+
+    const cluster_config = await showClusterConfigDialog(kernelspecs, user_info);
     if (cluster_config === null) { return };
+
     this._registry.notifyCommandChanged(this._launchClusterId);
     const response = await ServerConnection.makeRequest(
       `${this._serverSettings.baseUrl}dask/clusters`,
@@ -465,6 +478,7 @@ export class DaskClusterManager extends Widget {
       },
       this._serverSettings
     );
+    console.log("Dask Labextension - 'PUT' request sent")
     if (response.status !== 200) {
       const err = await response.json();
       void showErrorMessage('Cluster Start Error', err);
@@ -703,8 +717,8 @@ function ClusterListingItem(props: IClusterListingItemProps) {
   let itemClass = 'dask-ClusterListingItem';
   itemClass = isActive ? `${itemClass} jp-mod-active` : itemClass;
 
-  let minimum: JSX.Element | null = null;
-  let maximum: JSX.Element | null = null;
+  let minimum: React.JSX.Element | null = null;
+  let maximum: React.JSX.Element | null = null;
   if (cluster.adapt) {
     minimum = (
       <div className="dask-ClusterListingItem-stats">
@@ -717,11 +731,11 @@ function ClusterListingItem(props: IClusterListingItemProps) {
       </div>
     );
   }
-  let kernel_display_name: JSX.Element | null = null;
+  let kernel_display_name: React.JSX.Element | null = null;
   if (cluster.kernel_display_name!=="") {
     kernel_display_name = (
       <div className="dask-ClusterListingItem-stats">
-      Kernel: {cluster.kernel_display_name}
+      Kernel: {cluster.kernel_display_name as string}
     </div>
     )
   }

@@ -1,6 +1,6 @@
 # Dask JupyterLab Extension
 
-[![Build Status](https://travis-ci.org/dask/dask-labextension.svg?branch=main)](https://travis-ci.org/dask/dask-labextension) [![Version](https://img.shields.io/npm/v/dask-labextension.svg)](https://www.npmjs.com/package/dask-labextension) [![Downloads](https://img.shields.io/npm/dm/dask-labextension.svg)](https://www.npmjs.com/package/dask-labextension) [![Dependencies](https://img.shields.io/librariesio/release/npm/dask-labextension.svg)](https://libraries.io/npm/dask-labextension)
+[![Build Status](https://github.com/dask/dask-labextension/actions/workflows/python.yaml/badge.svg)](https://github.com/dask/dask-labextension/actions/workflows/python.yaml) [![Version](https://img.shields.io/npm/v/dask-labextension.svg)](https://www.npmjs.com/package/dask-labextension) [![Downloads](https://img.shields.io/npm/dm/dask-labextension.svg)](https://www.npmjs.com/package/dask-labextension) [![Dependencies](https://img.shields.io/librariesio/release/npm/dask-labextension.svg)](https://libraries.io/npm/dask-labextension)
 
 This package provides a JupyterLab extension to manage Dask clusters,
 as well as embed Dask's dashboard plots directly into JupyterLab panes.
@@ -32,9 +32,10 @@ conda install jupyterlab
 conda install -c conda-forge nodejs
 ```
 
-### JupyterLab 3.0 or greater
+### JupyterLab 4.x
 
-You should be able to install this extension with pip or conda,
+Install the latest version of the extension for the JupyterLab 4
+support. You should be able to install this extension with pip or conda,
 and start using it immediately, e.g.
 
 ```bash
@@ -43,18 +44,25 @@ pip install dask-labextension
 
 ### JupyterLab 3.x
 
-This extension includes both client-side and server-side components.
-Prior to JupyterLab 3.0 these needed to be installed separately,
-with node available on the machine.
+For JupyterLab 3.x, use lastest supported version `6.2.0`.
+
+```bash
+pip install dask-labextension==6.2.0
+```
+
+### JupyterLab 2.x
+
+Prior to JupyterLab 3.0 client-side and server-side components needed
+to be installed separately, with node available on the machine.
 
 The server-side component can be installed via pip or conda-forge:
 
 ```bash
-pip install dask_labextension
+pip install 'dask_labextension<5'
 ```
 
 ```bash
-conda install -c conda-forge dask-labextension
+conda install -c conda-forge 'dask-labextension<5'
 ```
 
 You then build the client-side extension into JupyterLab with:
@@ -213,22 +221,48 @@ jupyter serverextension enable --sys-prefix dask_labextension
 
 ## Publishing
 
-This application is distributed as two subpackages.
+This extension contains a front-end component written in TypeScript
+and a back-end component written in Python.
+The front-end is compiled to Javascript during the build process
+and is distributed as static assets along with the Python package.
 
-The JupyterLab frontend part is published to [npm](https://www.npmjs.com/package/dask-labextension),
-and the server-side part to [PyPI](https://pypi.org/project/dask-labextension/).
+### Release process
 
-Releases for both packages are done with the `jlpm` tool, `git` and Travis CI.
+This requires `node`, `build`, `hatch` and `twine` to be installed.
 
-_Note: Package versions are not prefixed with the letter `v`. You will need to disable this._
+```bash
+# To set version (e.g. 7.0.0). hatch will update version string in package.json
+hatch version "7.0.0"
 
-```console
-$ jlpm config set version-tag-prefix ""
+# Examples of bumping version
+# minor bump
+hatch version minor  # Bumps to 7.1.0
+# beta pre-release bump
+# If published to pypi this can be installed with the --pre flag to pip
+hatch version b  # Bumps to 7.1.0b0
+# bump minor and beta
+hatch version minor,b  # Bumps to 7.2.0b0
+# release all of the --pre-release flags such as alpha beta rc
+hatch release  # Bumps to 7.2.0
+
+# git commit after bumping version
+git add package.json && git commit -m "Bump version: {version}"
+# Tag this version
+git tag {version}
+
+# Finally push to main, build and upload package to PyPI
+git push upstream main && git push upstream main --tags  # pushes to GitHub
+python -m build .  # Build the package
+twine upload dist/*  # Upload the package to PyPI
 ```
 
-Making a release
+### Handling Javascript package version conflicts
 
-```console
-$ jlpm version [--major|--minor|--patch]  # updates package.json and creates git commit and tag
-$ git push upstream main && git push upstream main --tags  # pushes tags to GitHub which triggers Travis CI to build and deploy
+Unlike Python, Javascript packages can include more than one version of the same dependency.
+Usually the `yarn` package manager handles this okay, but occasionally you might end up with conflicting versions,
+or with unexpected package bloat.
+You can try to fix this by deduplicating dependencies:
+
+```bash
+jlpm yarn-deduplicate -s fewer
 ```
